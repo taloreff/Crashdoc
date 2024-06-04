@@ -7,10 +7,8 @@ import { ProfileProvider } from "./cmps/ProfileContext";
 import LoginScreen from "./screens/LoginScreen";
 import HomePage from "./screens/HomePage";
 import SignUpScreen from "./screens/SignUpScreen";
-import CreatePost from "./screens/CreatePost";
+import CreateForm from "./screens/CreateForm";
 import ProfileScreen from "./screens/ProfileScreen";
-import MyPostsScreen from "./screens/MyPostsScreen";
-import PostDetails from "./screens/PostDetails";
 
 const Stack = createStackNavigator();
 
@@ -57,8 +55,8 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Create Post"
-            component={CreatePost}
+            name="Create Form"
+            component={CreateForm}
             options={{ headerTitle: "" }}
           />
           <Stack.Screen
@@ -66,16 +64,11 @@ export default function App() {
             component={ProfileScreen}
             options={{ headerTitle: "" }}
           />
-          <Stack.Screen
-            name="My Posts"
-            component={MyPostsScreen}
-            options={{ headerTitle: "My Posts" }}
-          />
-          <Stack.Screen
-            name="PostDetails"
-            component={PostDetails}
-            options={{ headerTitle: "" }}
-          />
+          {/* <Stack.Screen
+            name="My Accidents"
+            component={MyAccidentsScreen}
+            options={{ headerTitle: "My Accidents" }}
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </ProfileProvider>

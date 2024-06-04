@@ -17,7 +17,7 @@ export default function HeaderComponent({ navigation }) {
           style={styles.profilePic}
         />
       </TouchableOpacity>
-      <Text style={styles.title}>Run Together</Text>
+      <Text style={styles.title}>Crashdoc</Text>
     </View>
   );
 }

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -14,27 +13,37 @@ import {
   Keyboard,
   ActivityIndicator,
 } from "react-native";
+import { Image } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import loginSignupService from "../services/loginSignup.service.js";
 
-const SignUpScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [passwordIsVisible, setPasswordIsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async () => {
+  const handleLogin = async () => {
     setLoading(true);
-    console.log("Signing up:", username, email, password);
-    const result = await loginSignupService.signup(username, email, password);
-    setLoading(false);
-
-    if (result.success) {
+    try {
+      const { token, user } = await loginSignupService.login(email, password);
+      console.log("Login successful:", user);
       navigation.navigate("Home Page", { refresh: true });
-    } else {
-      console.error("Error signing up:", result.error);
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.warn("Login failed. Invalid email or password");
+        setEmail("");
+        setPassword("");
+      } else {
+        console.error("Error logging in:", error.message);
+      }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleSignUp = () => {
+    navigation.navigate("Sign Up");
   };
 
   const handleDismissKeyboard = () => {
@@ -46,28 +55,18 @@ const SignUpScreen = ({ navigation }) => {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : null}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 200 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <View style={styles.content}>
-            <Image source={require("../assets/logo.png")} style={styles.logo} />
+            <Image
+              source={require("../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Sign up</Text>
-              <Text style={styles.subtitle}>Create your account</Text>
-            </View>
-            <View style={styles.inputContainer}>
-              <View style={styles.icon}>
-                <Feather name="user" size={22} color="black" />
-              </View>
-              <TextInput
-                style={[styles.input, { textAlign: "left" }]}
-                placeholder="Enter your user name"
-                placeholderTextColor="#7C808D"
-                selectionColor="#3662AA"
-                onChangeText={setUsername}
-                value={username}
-              />
+              <Text style={styles.subtitle}>Login to your account</Text>
             </View>
             <View style={styles.inputContainer}>
               <View style={styles.icon}>
@@ -109,16 +108,25 @@ const SignUpScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
             </View>
-            {loading && (
-              <ActivityIndicator
-                size="large"
-                color="#f7706d"
-                style={{ marginTop: 20 }}
-              />
+
+            {loading ? (
+              <ActivityIndicator size="large" color="#f7706d" />
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={styles.signupButton}
+                  onPress={handleSignUp}
+                >
+                  <Text style={styles.signupText}>Didn't sign up yet?</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.loginButton}
+                  onPress={handleLogin}
+                >
+                  <Text style={styles.loginButtonText}>Login</Text>
+                </TouchableOpacity>
+              </>
             )}
-            <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
-              <Text style={styles.loginButtonText}>Create your account</Text>
-            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -141,10 +149,6 @@ const styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
   },
-  titleContainer: {
-    marginBottom: 40,
-    alignItems: "center",
-  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -153,6 +157,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: "#9095A0FF",
+    marginBottom: 40,
   },
   inputContainer: {
     flexDirection: "row",
@@ -179,7 +184,7 @@ const styles = StyleSheet.create({
     right: 10,
   },
   loginButton: {
-    backgroundColor: "#f7706d",
+    backgroundColor: "#e23680",
     width: "80%",
     alignItems: "center",
     paddingVertical: 15,
@@ -191,6 +196,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  signupButton: {
+    alignItems: "flex-end",
+    width: "80%",
+  },
+  signupText: {
+    marginTop: 12,
+    color: "#e23680",
+  },
 });
 
-export default SignUpScreen;
+export default LoginScreen;

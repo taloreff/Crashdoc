@@ -10,7 +10,6 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomNavigation from "../cmps/BottomNavigation.js";
 import HeaderComponent from "../cmps/HeaderComponent.js";
-import RenderPost from "../cmps/RenderPost.js";
 import client from "../backend/api/client.js";
 import { useFocusEffect } from "@react-navigation/native";
 import { ProfileContext } from "../cmps/ProfileContext";
@@ -168,19 +167,6 @@ const HomePage = ({ navigation }) => {
     return likedPosts.includes(postId);
   };
 
-  const renderPost = ({ item, index }) => {
-    const isLastItem = index === posts.length - 1;
-    return (
-      <RenderPost
-        item={item}
-        isLastItem={isLastItem}
-        navigation={navigation}
-        toggleLike={toggleLike}
-        isPostLiked={isPostLiked}
-      />
-    );
-  };
-
   const debouncedFetchData = useCallback(debounce(fetchData, 300), []);
   const debouncedFetchLoggedInUserProfilePic = useCallback(
     debounce(fetchLoggedInUserProfilePic, 300),
@@ -203,7 +189,6 @@ const HomePage = ({ navigation }) => {
           data={posts.sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           )}
-          renderItem={renderPost}
           keyExtractor={(item) => item._id}
           refreshControl={
             <RefreshControl

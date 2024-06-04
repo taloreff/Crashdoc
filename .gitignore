@@ -4,7 +4,6 @@
 node_modules/
 
 .env
-app.json
 
 # Expo
 .expo/

@@ -67,11 +67,6 @@ const BottomNavigation = () => {
     navigation.navigate("Profile Details");
   };
 
-  const goToMyPostsScreen = () => {
-    setShowMenu(false);
-    navigation.navigate("My Posts");
-  };
-
   useEffect(() => {
     Animated.timing(menuPosition, {
       toValue: showMenu ? 0 : 1,
@@ -123,10 +118,7 @@ const BottomNavigation = () => {
                 <Text style={styles.menuActionText}>Log Out</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuAction}
-              onPress={goToMyPostsScreen}
-            >
+            <TouchableOpacity style={styles.menuAction}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Feather
                   name="file-text"

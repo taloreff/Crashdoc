@@ -17,9 +17,9 @@ import { Autocomplete } from "../cmps/Autocomplete.js";
 import { ImgUploader } from "../cmps/ImgUploader.js";
 import ImagePreview from "../cmps/ImagePreview.js";
 import * as ImagePicker from "expo-image-picker";
-import { createPostService } from "../services/createPost.service.js";
+import { createFormService } from "../services/createForm.service.js";
 
-const CreatePost = ({ navigation }) => {
+const CreateForm = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [image, setImage] = useState(null);
@@ -40,7 +40,7 @@ const CreatePost = ({ navigation }) => {
   const handlePostPress = async () => {
     setLoading(true);
     try {
-      await createPostService.handlePostPress(
+      await createFormService.handleFormPress(
         description,
         location,
         image,
@@ -54,7 +54,7 @@ const CreatePost = ({ navigation }) => {
   };
 
   const handleLocationSelect = (details) => {
-    createPostService.handleLocationSelect(
+    createFormService.handleLocationSelect(
       details,
       setLocation,
       isImageUploaded,
@@ -80,7 +80,7 @@ const CreatePost = ({ navigation }) => {
           keyboardVerticalOffset={Platform.OS === "ios" ? 120 : 0}
         >
           <View style={styles.header}>
-            <Text style={styles.headerText}>Create a post</Text>
+            <Text style={styles.headerText}>Create a form</Text>
           </View>
 
           <ImagePreview image={image} />
@@ -113,8 +113,8 @@ const CreatePost = ({ navigation }) => {
         )}
 
         <TouchableOpacity
-          style={[styles.postButton, { marginBottom: 20 }]}
-          onPress={handlePostPress}
+          style={[styles.formButton, { marginBottom: 20 }]}
+          onPress={handleFormPress}
           disabled={loading}
         >
           {!loading && (
@@ -122,8 +122,8 @@ const CreatePost = ({ navigation }) => {
               <Feather name="send" size={22} color="white" />
             </View>
           )}
-          <Text style={styles.postButtonText}>
-            {loading ? "Posting..." : "Post"}
+          <Text style={styles.formButtonText}>
+            {loading ? "Posting..." : "Form"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 0,
   },
-  postButton: {
+  formButton: {
     flexDirection: "row",
     backgroundColor: "#F7706EFF",
     paddingVertical: 12,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: -20,
   },
-  postButtonText: {
+  formButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
@@ -218,4 +218,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-export default CreatePost;
+export default CreateForm;
