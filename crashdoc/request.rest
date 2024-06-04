@@ -1,0 +1,11 @@
+
+
+POST http://localhost:5000/user
+Content-Type: application/json
+
+{
+    "username": "Yuvaasdasdl",
+    "email": "blabldaasdsada@gmail.com",
+    "password": "123456",
+    "image": "https://m.media-amazon.com/images/I/51IgLptkkHL._AC_SX695_.jpg"
+}
