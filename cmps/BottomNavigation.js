@@ -78,23 +78,11 @@ const BottomNavigation = () => {
   return (
     <TouchableWithoutFeedback onPress={handlePressOutsideMenu}>
       <View style={styles.container}>
-        <View style={styles.bottomNavigation}>
-          <TouchableOpacity onPress={goToHomeScreen}>
-            <View style={styles.icon}>
-              <Feather name="home" size={22} color="#fff" />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={goToCaseScreen}>
-            <View style={styles.icon}>
-              <Feather name="plus-circle" size={32} color="#fff" />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleMenu}>
-            <View style={styles.icon}>
-              <Feather name="menu" size={22} color="#fff" />
-            </View>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={toggleMenu}>
+          <View style={styles.icon}>
+            <Feather name="menu" size={22} color="#fff" />
+          </View>
+        </TouchableOpacity>
         {showMenu && (
           <Animated.View
             style={[
@@ -103,16 +91,12 @@ const BottomNavigation = () => {
             ]}
             {...panResponder.panHandlers}
           >
-            <View style={styles.menuHeader}>
-              <Text style={styles.menuHeaderText}>Menu Actions</Text>
-              <View style={styles.menuHeaderLine} />
-            </View>
             <TouchableOpacity onPress={handleLogout} style={styles.menuAction}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Feather
                   name="log-out"
                   size={18}
-                  color="#F7706EFF"
+                  color="#E93382"
                   style={{ marginRight: 8 }}
                 />
                 <Text style={styles.menuActionText}>Log Out</Text>
@@ -123,10 +107,10 @@ const BottomNavigation = () => {
                 <Feather
                   name="file-text"
                   size={18}
-                  color="#F7706EFF"
+                  color="#E93382"
                   style={{ marginRight: 8 }}
                 />
-                <Text style={styles.menuActionText}>My Posts</Text>
+                <Text style={styles.menuActionText}>My Cases</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -137,7 +121,7 @@ const BottomNavigation = () => {
                 <Feather
                   name="user"
                   size={18}
-                  color="#F7706EFF"
+                  color="#E93382"
                   style={{ marginRight: 8 }}
                 />
                 <Text style={styles.menuActionText}>My Profile</Text>
@@ -151,33 +135,6 @@ const BottomNavigation = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bottomNavigation: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: "#F7706EFF",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
   icon: {
     alignItems: "center",
     justifyContent: "center",
@@ -186,12 +143,12 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: "absolute",
-    bottom: 86,
-    left: 0,
+    top: 50,
+    // left: 0,
     right: 0,
     backgroundColor: "#fff",
     borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 8,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -200,6 +157,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    minWidth: 160,
+    maxWidth: 300,
   },
   menuAction: {
     padding: 16,
@@ -213,18 +172,15 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   menuHeader: {
-    backgroundColor: "#F7706EFF",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
   menuHeaderText: {
-    color: "#fff",
     fontWeight: "bold",
     fontSize: 20,
     textAlign: "center",
-    backgroundColor: "#F7706EFF",
     paddingVertical: 7,
     paddingHorizontal: 13,
   },

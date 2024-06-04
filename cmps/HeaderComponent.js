@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { View, Image, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ProfileContext } from "./ProfileContext";
 import avatarImage from "../assets/avatar.jpg";
+import BottomNavigation from "./BottomNavigation";
 
 export default function HeaderComponent({ navigation }) {
   const { profilePic } = useContext(ProfileContext);
@@ -17,7 +18,7 @@ export default function HeaderComponent({ navigation }) {
           style={styles.profilePic}
         />
       </TouchableOpacity>
-      <Text style={styles.title}>Crashdoc</Text>
+      <BottomNavigation />
     </View>
   );
 }
@@ -26,9 +27,11 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: 10,
+    paddingRight: 0,
     paddingLeft: 15,
-    backgroundColor: "#F7706EFF",
+    backgroundColor: "#E93382",
   },
   profilePicContainer: {
     marginRight: 10,
