@@ -7,7 +7,7 @@ import { ProfileProvider } from "./cmps/ProfileContext";
 import LoginScreen from "./screens/LoginScreen";
 import HomePage from "./screens/HomePage";
 import SignUpScreen from "./screens/SignUpScreen";
-import CreateForm from "./screens/CreateForm";
+import CreateCase from "./screens/CreateCase";
 import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createStackNavigator();
@@ -55,8 +55,8 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Create Form"
-            component={CreateForm}
+            name="Create Case"
+            component={CreateCase}
             options={{ headerTitle: "" }}
           />
           <Stack.Screen

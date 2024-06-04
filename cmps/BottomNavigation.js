@@ -57,9 +57,9 @@ const BottomNavigation = () => {
     navigation.navigate("Home Page");
   };
 
-  const goToPostScreen = () => {
+  const goToCaseScreen = () => {
     setShowMenu(false);
-    navigation.navigate("Create Post");
+    navigation.navigate("Create Case");
   };
 
   const goToProfileScreen = () => {
@@ -84,7 +84,7 @@ const BottomNavigation = () => {
               <Feather name="home" size={22} color="#fff" />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={goToPostScreen}>
+          <TouchableOpacity onPress={goToCaseScreen}>
             <View style={styles.icon}>
               <Feather name="plus-circle" size={32} color="#fff" />
             </View>

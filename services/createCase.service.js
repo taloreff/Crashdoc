@@ -2,7 +2,7 @@ import client from "../backend/api/client.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadService } from "./upload.service.js";
 
-export const createFormService = {
+export const createCaseService = {
   handleFormPress: async (description, location, image, navigation) => {
     try {
       if (!description.trim()) {
@@ -16,7 +16,7 @@ export const createFormService = {
       );
       const trimmedDescription = description.replace(/\n/g, " ");
       const postResponse = await client.post(
-        "/post",
+        "/form",
         { description: trimmedDescription, location, image: image?.imgUrl },
         {
           headers: {
@@ -29,7 +29,7 @@ export const createFormService = {
       if (existingUser) {
         const updatedUser = {
           ...existingUser,
-          posts: [...existingUser.posts, postResponse.data],
+          forms: [...existingUser.forms, postResponse.data],
         };
         await client.put(`/user/${currentLoggedInUserID}`, updatedUser);
         navigation.navigate("Home Page");
