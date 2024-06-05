@@ -22,6 +22,7 @@ const HomePage = ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loggedInUserID, setLoggedInUserID] = useState(null);
   const { profilePic, setProfilePic } = useContext(ProfileContext);
+  const [showSafetyDialog, setShowSafetyDialog] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,6 +66,10 @@ const HomePage = ({ navigation }) => {
     Alert.alert("SOS Triggered!");
   };
 
+  const hideDialog = () => {
+    setShowSafetyDialog(false);
+  }
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <SafeAreaView style={styles.container}>
@@ -85,16 +90,16 @@ const HomePage = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.bottomContainer}>
-          <View style={styles.safetyDialogContainer}>
+          {showSafetyDialog && <View style={styles.safetyDialogContainer}>
             <Text style={styles.safetyText}>Ensure your safety</Text>
             <Text style={styles.safetySubText}>
               By wearing a yellow vest, placing a caution triangle and obeying
               traffic laws
             </Text>
-            <TouchableOpacity style={styles.closeDialogButton}>
+            <TouchableOpacity style={styles.closeDialogButton} onPress={hideDialog}>
               <Text style={styles.closeButtonText}>x</Text>
             </TouchableOpacity>
-          </View>
+          </View>}
           <View style={styles.sosSliderContainer}>
             <SOSSlider onSlide={handleSOS} />
           </View>

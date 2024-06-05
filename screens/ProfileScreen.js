@@ -205,6 +205,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "space-between",
     backgroundColor: "#fff",
   },
   header: {
@@ -222,6 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
+    marginBottom: 40,
   },
   profileImage: {
     width: 200,
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "#F7706EFF",
+    backgroundColor: "#e23680",
     borderRadius: 20,
     padding: 8,
   },
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#ff5252",
+    backgroundColor: "#e23680",
   },
   editButtonText: {
     fontSize: 14,
@@ -286,12 +288,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   updateButton: {
-    backgroundColor: "#ff5252",
-    paddingVertical: 12,
+    backgroundColor: "#e23680",
+    paddingVertical: 18,
     paddingHorizontal: 16,
-    borderRadius: 4,
+    borderRadius: 36,
     alignItems: "center",
-    marginTop: 60,
     marginHorizontal: 38,
     flexDirection: "row",
     justifyContent: "center",
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     borderRadius: 12,
     borderWidth: 1,
-    marginVertical: 10,
+    marginVertical: 20,
     paddingHorizontal: 10,
   },
   icon: {
