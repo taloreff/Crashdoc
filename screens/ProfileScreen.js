@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import BottomNavigation from "../cmps/BottomNavigation";
+import TopNavigation from "../cmps/TopNavigation";
 import client from "../backend/api/client";
 import { uploadService } from "../services/upload.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -196,7 +196,7 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.updateButtonText}>Update</Text>
           )}
         </TouchableOpacity>
-        <BottomNavigation />
+        <TopNavigation />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  bottomNavigation: {
+  TopNavigation: {
     position: "absolute",
     bottom: 0,
     left: 0,

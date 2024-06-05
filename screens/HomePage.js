@@ -38,6 +38,10 @@ const HomePage = ({ navigation }) => {
     })();
   }, []);
 
+  const goToCaseScreen = () => {
+    navigation.navigate("Create Case");
+  };
+
   const fetchLoggedInUserProfilePic = async () => {
     try {
       const currentLoggedInUserID = await AsyncStorage.getItem(
@@ -72,7 +76,10 @@ const HomePage = ({ navigation }) => {
         <View style={styles.innerContainer}>
           <View style={styles.documentButtonContainer}>
             <Text style={styles.tapBtnText}>Tap to document</Text>
-            <TouchableOpacity style={styles.documentButton}>
+            <TouchableOpacity
+              style={styles.documentButton}
+              onPress={goToCaseScreen}
+            >
               <Text style={styles.buttonText}>+</Text>
             </TouchableOpacity>
           </View>
@@ -121,6 +128,8 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 80,
     color: "#fff",
+    textAlign: "center",
+    lineHeight: 80,
   },
   tapBtnText: {
     fontSize: 16,

@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { View, Image, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ProfileContext } from "./ProfileContext";
 import avatarImage from "../assets/avatar.jpg";
-import BottomNavigation from "./BottomNavigation";
+import TopNavigation from "./TopNavigation";
 
 export default function HeaderComponent({ navigation }) {
   const { profilePic } = useContext(ProfileContext);
@@ -18,7 +18,7 @@ export default function HeaderComponent({ navigation }) {
           style={styles.profilePic}
         />
       </TouchableOpacity>
-      <BottomNavigation />
+      <TopNavigation />
     </View>
   );
 }

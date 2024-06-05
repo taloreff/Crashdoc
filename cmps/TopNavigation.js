@@ -11,10 +11,10 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import loginSignupService from "../services/loginSignup.service.js";
-import { ProfileContext } from "./ProfileContext";
+import { ProfileContext } from "./ProfileContext.js";
 import avatarImage from "../assets/avatar.jpg";
 
-const BottomNavigation = () => {
+const TopNavigation = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState(new Animated.Value(1));
   const navigation = useNavigation();
@@ -51,16 +51,6 @@ const BottomNavigation = () => {
       onPanResponderGrant: handlePanResponderGrant,
     })
   ).current;
-
-  const goToHomeScreen = () => {
-    setShowMenu(false);
-    navigation.navigate("Home Page");
-  };
-
-  const goToCaseScreen = () => {
-    setShowMenu(false);
-    navigation.navigate("Create Case");
-  };
 
   const goToProfileScreen = () => {
     setShowMenu(false);
@@ -144,7 +134,6 @@ const styles = StyleSheet.create({
   menuContainer: {
     position: "absolute",
     top: 50,
-    // left: 0,
     right: 0,
     backgroundColor: "#fff",
     borderTopLeftRadius: 8,
@@ -186,4 +175,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomNavigation;
+export default TopNavigation;

@@ -9,40 +9,26 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
+  Image,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { createCaseService } from "../services/createCase.service";
+import Swiper from "react-native-swiper";
 
 const CreateCase = ({ navigation }) => {
-  const [ID_uesr, setID_uesr] = useState("");
+  const [ID_user, setID_user] = useState("");
   const [Phone_number, setPhone_number] = useState("");
   const [Vehicle_number, setVehicle_number] = useState("");
   const [License_number, setLicense_number] = useState("");
   const [Vehicle_model, setVehicle_model] = useState("");
-  const [documents, setDocuments] = useState([]);
-
-  const handleCaseSubmit = async () => {
-    try {
-      await createCaseService.handleCaseSubmit(
-        ID_uesr,
-        Phone_number,
-        Vehicle_number,
-        License_number,
-        Vehicle_model,
-        documents,
-        navigation
-      );
-    } catch (error) {
-      console.error("Error creating case:", error);
-    }
-  };
+  const [documents, setDocuments] = useState({});
 
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
-  const handleDocumentUpload = async () => {
+  const handleDocumentUpload = async (docType) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -52,11 +38,22 @@ const CreateCase = ({ navigation }) => {
       });
 
       if (!result.canceled) {
-        setDocuments([...documents, result.assets[0].uri]);
+        setDocuments({ ...documents, [docType]: result.assets[0].uri });
       }
     } catch (error) {
       console.error("Error uploading document:", error);
     }
+  };
+
+  const navigateToDamageAssessment = () => {
+    navigation.navigate("Damage assessment", {
+      ID_user,
+      Phone_number,
+      Vehicle_number,
+      License_number,
+      Vehicle_model,
+      documents,
+    });
   };
 
   return (
@@ -66,67 +63,96 @@ const CreateCase = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : null}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Third party details</Text>
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Third party details</Text>
+          </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="ID"
-          value={ID_uesr}
-          onChangeText={setID_uesr}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Phone number"
-          value={Phone_number}
-          onChangeText={setPhone_number}
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Vehicle number"
-          value={Vehicle_number}
-          onChangeText={setVehicle_number}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="License number"
-          value={License_number}
-          onChangeText={setLicense_number}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Vehicle model"
-          value={Vehicle_model}
-          onChangeText={setVehicle_model}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="ID"
+            value={ID_user}
+            onChangeText={setID_user}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone number"
+            value={Phone_number}
+            onChangeText={setPhone_number}
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Vehicle number"
+            value={Vehicle_number}
+            onChangeText={setVehicle_number}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="License number"
+            value={License_number}
+            onChangeText={setLicense_number}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Vehicle model"
+            value={Vehicle_model}
+            onChangeText={setVehicle_model}
+          />
 
-        <View style={styles.documentContainer}>
+          <View style={styles.documentContainer}>
+            <Swiper
+              style={styles.wrapper}
+              showsButtons={true}
+              loop={false}
+              height={180}
+              containerStyle={styles.swiperContainer}
+              dotStyle={styles.dotStyle}
+              activeDotStyle={styles.activeDotStyle}
+              nextButton={<Text style={styles.swiperButton}>›</Text>}
+              prevButton={<Text style={styles.swiperButton}>‹</Text>}
+            >
+              {[
+                "THE DRIVER'S LICENCE",
+                "THE DRIVER'S VEHICLE LICENSE",
+                "INSURANCE",
+                "REGISTRATION",
+                "ADDITIONAL DOCUMENT",
+              ].map((docType) => (
+                <View style={styles.slide} key={docType}>
+                  <TouchableOpacity
+                    style={styles.documentButton}
+                    onPress={() => handleDocumentUpload(docType)}
+                  >
+                    {documents[docType] ? (
+                      <Image
+                        source={{ uri: documents[docType] }}
+                        style={styles.documentImage}
+                      />
+                    ) : (
+                      <>
+                        <Feather
+                          name="upload"
+                          size={24}
+                          color="#e23680"
+                          style={styles.uploadIcon}
+                        />
+                        <Text style={styles.documentButtonText}>{docType}</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </Swiper>
+          </View>
+
           <TouchableOpacity
-            style={styles.documentButton}
-            onPress={handleDocumentUpload}
+            style={styles.submitButton}
+            onPress={navigateToDamageAssessment}
           >
-            <Feather name="upload" size={24} color="#e23680" />
-            <Text style={styles.documentButtonText}>THE DRIVER'S LICENCE</Text>
+            <Text style={styles.submitButtonText}>NEXT TO MY DETAILS</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.documentButton}
-            onPress={handleDocumentUpload}
-          >
-            <Feather name="upload" size={24} color="#e23680" />
-            <Text style={styles.documentButtonText}>
-              THE DRIVER'S VEHICLE LICENSE
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.submitButton}
-          onPress={handleCaseSubmit}
-        >
-          <Text style={styles.submitButtonText}>NEXT TO MY DETAILS</Text>
-        </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -136,6 +162,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  scrollViewContent: {
     padding: 16,
   },
   header: {
@@ -157,24 +185,55 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   documentContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginVertical: 16,
   },
-  documentButton: {
-    flexDirection: "row",
+  wrapper: {},
+  swiperContainer: {
+    height: 180,
+  },
+  slide: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+  },
+  documentButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "#F3F3F6FF",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    width: "48%",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    position: "relative",
   },
   documentButtonText: {
     color: "#e23680",
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "bold",
-    marginLeft: 8,
+    textAlign: "center",
+  },
+  uploadIcon: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+  },
+  documentImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  dotStyle: {
+    backgroundColor: "#e23680",
+    marginBottom: -20,
+  },
+  activeDotStyle: {
+    backgroundColor: "#e23680",
+    marginBottom: -20,
+  },
+  swiperButton: {
+    color: "#e23680",
+    fontSize: 50,
+    fontWeight: "bold",
   },
   submitButton: {
     backgroundColor: "#e23680",

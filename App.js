@@ -9,6 +9,7 @@ import HomePage from "./screens/HomePage";
 import SignUpScreen from "./screens/SignUpScreen";
 import CreateCase from "./screens/CreateCase";
 import ProfileScreen from "./screens/ProfileScreen";
+import DamageassessmentScreen from "./screens/DamageassessmentScreen";
 
 const Stack = createStackNavigator();
 
@@ -64,11 +65,11 @@ export default function App() {
             component={ProfileScreen}
             options={{ headerTitle: "" }}
           />
-          {/* <Stack.Screen
-            name="My Accidents"
-            component={MyAccidentsScreen}
-            options={{ headerTitle: "My Accidents" }}
-          /> */}
+          <Stack.Screen
+            name="Damage assessment"
+            component={DamageassessmentScreen}
+            options={{ headerTitle: "" }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </ProfileProvider>
