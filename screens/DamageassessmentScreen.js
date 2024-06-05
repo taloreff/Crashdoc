@@ -26,7 +26,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     License_number,
     Vehicle_model,
     documents,
-    handleDocumentUpload
   } = route.params;
 
   const handlePhotoUpload = async (index) => {
