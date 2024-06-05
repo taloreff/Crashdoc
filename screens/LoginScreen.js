@@ -42,6 +42,25 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleGuest = async () => {
+    setLoading(true);
+    try {
+      const { token, user } = await loginSignupService.login(email, password);
+      console.log("Login successful:", user);
+      navigation.navigate("Home Page", { refresh: true });
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.warn("Login failed. Invalid email or password");
+        setEmail("");
+        setPassword("");
+      } else {
+        console.error("Error logging in:", error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignUp = () => {
     navigation.navigate("Sign Up");
   };
@@ -125,6 +144,12 @@ const LoginScreen = ({ navigation }) => {
                 >
                   <Text style={styles.loginButtonText}>Login</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.guestButton}
+                  onPress={handleGuest}
+                >
+                  <Text style={styles.guestButtonText}>Join as a Guest</Text>
+                </TouchableOpacity>
               </>
             )}
           </View>
@@ -194,6 +219,19 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: "#fff",
+    fontWeight: "bold",
+  },
+  guestButton: {
+    backgroundColor: "#C0C0C0",
+    width: "80%",
+    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 30,
+  },
+  guestButtonText: {
+    color: "#000",
     fontWeight: "bold",
   },
   signupButton: {
