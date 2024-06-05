@@ -26,6 +26,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     License_number,
     Vehicle_model,
     documents,
+    handleDocumentUpload
   } = route.params;
 
   const handlePhotoUpload = async (index) => {
@@ -37,7 +38,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         quality: 1,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
+        console.log("result", result)
         setDamagePhotos((prevPhotos) => {
           const newPhotos = [...prevPhotos];
           newPhotos[index] = result.assets[0].uri;
@@ -135,7 +137,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             "ADDITIONAL DOCUMENT",
           ].map((docType) => (
             <View style={styles.slide} key={docType}>
-              <TouchableOpacity
+              <View
                 style={styles.documentButton}
                 onPress={() => handleDocumentUpload(docType)}
               >
@@ -146,16 +148,16 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                   />
                 ) : (
                   <>
-                    <Feather
+                    {/* <Feather
                       name="upload"
                       size={24}
                       color="#e23680"
                       style={styles.uploadIcon}
-                    />
+                    /> */}
                     <Text style={styles.documentButtonText}>{docType}</Text>
                   </>
                 )}
-              </TouchableOpacity>
+              </View>
             </View>
           ))}
         </Swiper>

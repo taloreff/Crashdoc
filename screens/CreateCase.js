@@ -53,6 +53,7 @@ const CreateCase = ({ navigation }) => {
       License_number,
       Vehicle_model,
       documents,
+      handleDocumentUpload
     });
   };
 
@@ -68,34 +69,34 @@ const CreateCase = ({ navigation }) => {
             <Text style={styles.headerText}>Third party details</Text>
           </View>
 
+          <Text>ID</Text>
           <TextInput
             style={styles.input}
-            placeholder="ID"
             value={ID_user}
             onChangeText={setID_user}
           />
+          <Text>Phone number</Text>
           <TextInput
             style={styles.input}
-            placeholder="Phone number"
             value={Phone_number}
             onChangeText={setPhone_number}
             keyboardType="numeric"
           />
+          <Text>Vehicle number</Text>
           <TextInput
             style={styles.input}
-            placeholder="Vehicle number"
             value={Vehicle_number}
             onChangeText={setVehicle_number}
           />
+          <Text>License number</Text>
           <TextInput
             style={styles.input}
-            placeholder="License number"
             value={License_number}
             onChangeText={setLicense_number}
           />
+          <Text>Vehicle model</Text>
           <TextInput
             style={styles.input}
-            placeholder="Vehicle model"
             value={Vehicle_model}
             onChangeText={setVehicle_model}
           />
@@ -131,12 +132,13 @@ const CreateCase = ({ navigation }) => {
                       />
                     ) : (
                       <>
-                        <Feather
-                          name="upload"
-                          size={24}
-                          color="#e23680"
-                          style={styles.uploadIcon}
-                        />
+                        <View style={styles.uploadIconContainer}>
+                          <Feather
+                            name="upload"
+                            size={18}
+                            style={styles.uploadIcon}
+                          />
+                        </View>
                         <Text style={styles.documentButtonText}>{docType}</Text>
                       </>
                     )}
@@ -150,7 +152,7 @@ const CreateCase = ({ navigation }) => {
             style={styles.submitButton}
             onPress={navigateToDamageAssessment}
           >
-            <Text style={styles.submitButtonText}>NEXT TO MY DETAILS</Text>
+            <Text style={styles.submitButtonText}>UPLOAD YOUR VEHICLE</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -180,12 +182,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 0,
     borderRadius: 10,
-    backgroundColor: "#F3F3F6FF",
-    padding: 8,
-    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.2)",
+    padding: 12,
+    marginTop: 6,
+    marginBottom: 16,
   },
   documentContainer: {
-    marginVertical: 16,
+    marginVertical: 6,
   },
   wrapper: {},
   swiperContainer: {
@@ -207,15 +211,24 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   documentButtonText: {
-    color: "#e23680",
+    color: "rgba(0, 0, 0, 0.6)",
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
   },
-  uploadIcon: {
+  uploadIconContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    backgroundColor: "#e23680",
+    justifyContent: "center",
+    alignItems: "center",
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 2,
+    right: 2,
+  },
+  uploadIcon: {
+    color: "#fff",
   },
   documentImage: {
     width: 100,
@@ -237,9 +250,9 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: "#e23680",
-    paddingVertical: 12,
+    paddingVertical: 20,
     paddingHorizontal: 16,
-    borderRadius: 4,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,

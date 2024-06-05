@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     paddingRight: 0,
     paddingLeft: 15,
     backgroundColor: "#E93382",
+    zIndex: 100,
   },
   profilePicContainer: {
     marginRight: 10,
