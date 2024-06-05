@@ -66,7 +66,7 @@ const CreateCase = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>Third party details</Text>
+            <Text style={styles.headerText}><Text style={{ color: "#e23680" }}>Third party</Text> details</Text>
           </View>
 
           <Text>ID</Text>
@@ -171,11 +171,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    // justifyContent: "center",
     paddingVertical: 8,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 26,
     fontWeight: "bold",
   },
   input: {
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e23680",
     paddingVertical: 20,
     paddingHorizontal: 16,
-    borderRadius: 24,
+    borderRadius: 44,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,

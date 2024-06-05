@@ -92,7 +92,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Damage Assessment</Text>
+          <Text style={styles.headerText}><Text style={{ color: "#e23680" }}>Damage</Text> assessment</Text>
         </View>
 
         {[...Array(3)].map((_, index) => (
@@ -101,7 +101,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             style={styles.photoButton}
             onPress={() => handlePhotoUpload(index)}
           >
-            <Feather name="camera" size={24} color="#e23680" />
+            <Feather name="camera" size={24} color="rgba(0, 0, 0, 0.5)" />
             <Text style={styles.photoButtonText}>
               {damagePhotos[index] ? "Change Photo" : "Upload Damage Photo"}
             </Text>
@@ -163,11 +163,11 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         </Swiper>
 
         <TouchableOpacity
-          style={styles.submitButton}
+          style={styles.assessButton}
           onPress={handleAssessDamage}
           disabled={processing}
         >
-          <Text style={styles.submitButtonText}>
+          <Text style={styles.assessButtonText}>
             {processing ? "Assessing..." : "Assess the Damage"}
           </Text>
         </TouchableOpacity>
@@ -195,24 +195,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     paddingVertical: 8,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 26,
     fontWeight: "bold",
   },
   photoButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F3F3F6FF",
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 4,
+    borderRadius: 12,
     marginVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.2)",
   },
   photoButtonText: {
-    color: "#e23680",
+    color: "rgba(0, 0, 0, 0.5)",
     fontSize: 14,
     fontWeight: "bold",
     marginLeft: 8,
@@ -276,14 +276,32 @@ const styles = StyleSheet.create({
     fontSize: 50,
     fontWeight: "bold",
   },
-  submitButton: {
-    backgroundColor: "#e23680",
-    paddingVertical: 12,
+  assessButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 18,
     paddingHorizontal: 16,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
+    borderWidth: 1,
+    borderColor: "#e23680",
+    borderRadius: 12,
+  },
+  assessButtonText: {
+    color: "#e23680",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  submitButton: {
+    backgroundColor: "#e23680",
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    borderRadius: 12,
   },
   submitButtonText: {
     color: "#fff",
