@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -53,8 +53,7 @@ const CreateCase = ({ navigation }) => {
       License_number,
       Vehicle_model,
       documents,
-      handleDocumentUpload
-    });
+    })
   };
 
   return (
@@ -66,7 +65,9 @@ const CreateCase = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.header}>
-            <Text style={styles.headerText}><Text style={{ color: "#e23680" }}>Third party</Text> details</Text>
+            <Text style={styles.headerText}>
+              <Text style={{ color: "#e23680" }}>Third party</Text> details
+            </Text>
           </View>
 
           <Text>ID</Text>
@@ -74,7 +75,9 @@ const CreateCase = ({ navigation }) => {
             style={styles.input}
             value={ID_user}
             onChangeText={setID_user}
+            keyboardType="numeric"
           />
+
           <Text>Phone number</Text>
           <TextInput
             style={styles.input}
@@ -82,18 +85,23 @@ const CreateCase = ({ navigation }) => {
             onChangeText={setPhone_number}
             keyboardType="numeric"
           />
+
           <Text>Vehicle number</Text>
           <TextInput
             style={styles.input}
             value={Vehicle_number}
             onChangeText={setVehicle_number}
+            keyboardType="numeric"
           />
+
           <Text>License number</Text>
           <TextInput
             style={styles.input}
             value={License_number}
             onChangeText={setLicense_number}
+            keyboardType="numeric"
           />
+
           <Text>Vehicle model</Text>
           <TextInput
             style={styles.input}
@@ -149,8 +157,25 @@ const CreateCase = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              !ID_user ||
+                !Phone_number ||
+                !Vehicle_number ||
+                !License_number ||
+                !Vehicle_model ||
+                Object.keys(documents).length < 4
+                ? styles.disabledButton
+                : null,
+            ]}
             onPress={navigateToDamageAssessment}
+            disabled={
+              !ID_user ||
+              !Phone_number ||
+              !Vehicle_number ||
+              !License_number ||
+              !Vehicle_model
+            }
           >
             <Text style={styles.submitButtonText}>UPLOAD YOUR VEHICLE</Text>
           </TouchableOpacity>
@@ -171,7 +196,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    // justifyContent: "center",
     paddingVertical: 8,
   },
   headerText: {
@@ -186,6 +210,14 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 0, 0, 0.2)",
     padding: 12,
     marginTop: 6,
+    marginBottom: 16,
+  },
+  errorInput: {
+    borderColor: "#e23680",
+  },
+  errorText: {
+    color: "#e23680",
+    fontSize: 12,
     marginBottom: 16,
   },
   documentContainer: {
@@ -256,6 +288,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
+  },
+  disabledButton: {
+    backgroundColor: "#e23680",
+    opacity: 0.6,
   },
   submitButtonText: {
     color: "#fff",
