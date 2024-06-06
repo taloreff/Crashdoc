@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState([]);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(new Animated.Value(0));
+  const [document, setDocuments] = useState({});
+  const [swiperKey, setSwiperKey] = useState(0);
 
   const {
     ID_user,
@@ -38,7 +40,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       });
 
       if (!result.canceled) {
-        console.log("result", result)
+        console.log("result", result);
         setDamagePhotos((prevPhotos) => {
           const newPhotos = [...prevPhotos];
           newPhotos[index] = result.assets[0].uri;
@@ -65,7 +67,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       const response = await createCaseService(data);
 
       if (response.success) {
-        navigation.navigate("Summary", { caseData: data });
+        navigation.navigate("Home Page", { caseData: data });
       } else {
         console.error("Failed to create case:", response.error);
       }
@@ -74,39 +76,47 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     }
   };
 
+  useEffect(() => {
+    setSwiperKey((prevKey) => prevKey + 1);
+  }, [documents]);
+
   const handleAssessDamage = async () => {
     setProcessing(true);
     Animated.timing(progress, {
       toValue: 1,
-      duration: 5000, // 5 seconds
+      duration: 5000,
       useNativeDriver: false,
     }).start(() => {
       setProcessing(false);
-      setProgress(new Animated.Value(0)); // Reset progress for next use
+      setProgress(new Animated.Value(0));
     });
-    // Here you can initiate the backend process
+  };
+
+  const handleDocumentUpload = async (docType) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setDocuments({ ...documents, [docType]: result.assets[0].uri });
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+    }
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.header}>
-          <Text style={styles.headerText}><Text style={{ color: "#e23680" }}>Damage</Text> assessment</Text>
+          <Text style={styles.headerText}>
+            <Text style={{ color: "#e23680" }}>Damage</Text> assessment
+          </Text>
         </View>
-
-        {[...Array(3)].map((_, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.photoButton}
-            onPress={() => handlePhotoUpload(index)}
-          >
-            <Feather name="camera" size={24} color="rgba(0, 0, 0, 0.5)" />
-            <Text style={styles.photoButtonText}>
-              {damagePhotos[index] ? "Change Photo" : "Upload Damage Photo"}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
         <View style={styles.photoPreviewContainer}>
           {damagePhotos.map((photoUri, index) => (
             <Image
@@ -117,49 +127,54 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
           ))}
         </View>
 
-        <Swiper
-          style={styles.wrapper}
-          showsButtons={true}
-          loop={false}
-          height={180}
-          containerStyle={styles.swiperContainer}
-          dotStyle={styles.dotStyle}
-          activeDotStyle={styles.activeDotStyle}
-          nextButton={<Text style={styles.swiperButton}>›</Text>}
-          prevButton={<Text style={styles.swiperButton}>‹</Text>}
-        >
-          {[
-            "THE DRIVER'S LICENCE",
-            "THE DRIVER'S VEHICLE LICENSE",
-            "INSURANCE",
-            "REGISTRATION",
-            "ADDITIONAL DOCUMENT",
-          ].map((docType) => (
-            <View style={styles.slide} key={docType}>
-              <View
-                style={styles.documentButton}
-                onPress={() => handleDocumentUpload(docType)}
-              >
-                {documents[docType] ? (
-                  <Image
-                    source={{ uri: documents[docType] }}
-                    style={styles.documentImage}
-                  />
-                ) : (
-                  <>
-                    {/* <Feather
-                      name="upload"
-                      size={24}
-                      color="#e23680"
-                      style={styles.uploadIcon}
-                    /> */}
-                    <Text style={styles.documentButtonText}>{docType}</Text>
-                  </>
-                )}
+        <View style={styles.documentContainer}>
+          <Swiper
+            key={swiperKey}
+            style={styles.wrapper}
+            showsButtons={true}
+            loop={false}
+            height={130}
+            containerStyle={styles.swiperContainer}
+            dotStyle={styles.dotStyle}
+            activeDotStyle={styles.activeDotStyle}
+            nextButton={<Text style={styles.swiperButton}>›</Text>}
+            prevButton={<Text style={styles.swiperButton}>‹</Text>}
+            paginationStyle={styles.paginationStyle}
+          >
+            {[
+              "Upload Damage Photo",
+              "Upload Damage Photo",
+              "Upload Damage Photo",
+              "Upload Damage Photo",
+              "Upload Damage Photo",
+            ].map((docType, index) => (
+              <View style={styles.slide} key={index}>
+                <TouchableOpacity
+                  style={styles.documentButton}
+                  onPress={() => handleDocumentUpload(docType)}
+                >
+                  {documents[docType] ? (
+                    <Image
+                      source={{ uri: documents[docType] }}
+                      style={styles.documentImage}
+                    />
+                  ) : (
+                    <>
+                      <View style={styles.uploadIconContainer}>
+                        <Feather
+                          name="upload"
+                          size={18}
+                          style={styles.uploadIcon}
+                        />
+                      </View>
+                      <Text style={styles.documentButtonText}>{docType}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
-            </View>
-          ))}
-        </Swiper>
+            ))}
+          </Swiper>
+        </View>
 
         <TouchableOpacity
           style={styles.assessButton}
@@ -170,7 +185,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             {processing ? "Assessing..." : "Assess the Damage"}
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.submitButton}
           onPress={handleCaseSubmit}
@@ -236,6 +250,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  documentContainer: {
+    marginVertical: 0,
+  },
+  wrapper: {},
+  swiperContainer: {
+    height: 180,
+  },
+  slide: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   documentButton: {
     width: 120,
     height: 120,
@@ -247,33 +273,54 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   documentButtonText: {
-    color: "#e23680",
+    color: "rgba(0, 0, 0, 0.6)",
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
   },
-  uploadIcon: {
+  uploadIconContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    backgroundColor: "#e23680",
+    justifyContent: "center",
+    alignItems: "center",
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 2,
+    right: 2,
+  },
+  uploadIcon: {
+    color: "#fff",
   },
   documentImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: "100%",
+    height: "100%",
+    borderRadius: 60,
+    resizeMode: "cover",
   },
   dotStyle: {
-    backgroundColor: "#e23680",
-    marginBottom: -20,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    bottom: -15,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   activeDotStyle: {
     backgroundColor: "#e23680",
-    marginBottom: -20,
+    bottom: -15,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   swiperButton: {
     color: "#e23680",
     fontSize: 50,
     fontWeight: "bold",
+  },
+  paginationStyle: {
+    marginTop: 20,
   },
   assessButton: {
     backgroundColor: "#fff",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Keyboard,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -23,26 +24,82 @@ const CreateCase = ({ navigation }) => {
   const [License_number, setLicense_number] = useState("");
   const [Vehicle_model, setVehicle_model] = useState("");
   const [documents, setDocuments] = useState({});
-
+  const [swiperKey, setSwiperKey] = useState(0);
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
-  const handleDocumentUpload = async (docType) => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+  useEffect(() => {
+    setSwiperKey((prevKey) => prevKey + 1);
+  }, [documents]);
 
-      if (!result.canceled) {
-        setDocuments({ ...documents, [docType]: result.assets[0].uri });
-      }
-    } catch (error) {
-      console.error("Error uploading document:", error);
+  const requestPermissions = async () => {
+    const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+    const mediaLibraryStatus =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    return (
+      cameraStatus.status === "granted" &&
+      mediaLibraryStatus.status === "granted"
+    );
+  };
+
+  const handleDocumentUpload = async (docType) => {
+    const hasPermissions = await requestPermissions();
+
+    if (!hasPermissions) {
+      Alert.alert(
+        "Permission required",
+        "Please allow camera and media library permissions in your settings."
+      );
+      return;
     }
+
+    Alert.alert(
+      "Upload Document",
+      "Choose an option",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              setDocuments((prevDocuments) => ({
+                ...prevDocuments,
+                [docType]: result.assets[0].uri,
+              }));
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.All,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              setDocuments((prevDocuments) => ({
+                ...prevDocuments,
+                [docType]: result.assets[0].uri,
+              }));
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const navigateToDamageAssessment = () => {
@@ -53,7 +110,7 @@ const CreateCase = ({ navigation }) => {
       License_number,
       Vehicle_model,
       documents,
-    })
+    });
   };
 
   return (
@@ -111,15 +168,17 @@ const CreateCase = ({ navigation }) => {
 
           <View style={styles.documentContainer}>
             <Swiper
+              key={swiperKey}
               style={styles.wrapper}
               showsButtons={true}
               loop={false}
-              height={180}
+              height={130}
               containerStyle={styles.swiperContainer}
               dotStyle={styles.dotStyle}
               activeDotStyle={styles.activeDotStyle}
               nextButton={<Text style={styles.swiperButton}>›</Text>}
               prevButton={<Text style={styles.swiperButton}>‹</Text>}
+              paginationStyle={styles.paginationStyle}
             >
               {[
                 "THE DRIVER'S LICENCE",
@@ -160,11 +219,11 @@ const CreateCase = ({ navigation }) => {
             style={[
               styles.submitButton,
               !ID_user ||
-                !Phone_number ||
-                !Vehicle_number ||
-                !License_number ||
-                !Vehicle_model ||
-                Object.keys(documents).length < 4
+              !Phone_number ||
+              !Vehicle_number ||
+              !License_number ||
+              !Vehicle_model ||
+              Object.keys(documents).length < 4
                 ? styles.disabledButton
                 : null,
             ]}
@@ -221,7 +280,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   documentContainer: {
-    marginVertical: 6,
+    marginVertical: 0,
   },
   wrapper: {},
   swiperContainer: {
@@ -268,17 +327,28 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   dotStyle: {
-    backgroundColor: "#e23680",
-    marginBottom: -20,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    bottom: -15,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   activeDotStyle: {
     backgroundColor: "#e23680",
-    marginBottom: -20,
+    bottom: -15,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   swiperButton: {
     color: "#e23680",
     fontSize: 50,
     fontWeight: "bold",
+  },
+  paginationStyle: {
+    marginTop: 20,
   },
   submitButton: {
     backgroundColor: "#e23680",

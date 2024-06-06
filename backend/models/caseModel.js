@@ -8,6 +8,7 @@ const caseSchema = new mongoose.Schema(
     License_number: { type: String, required: true },
     Vehicle_model: { type: String, required: true },
     documents: { type: Array, default: [] },
+    damagePhotos: { type: Array, default: [] },
   },
   { timestamps: true }
 );
