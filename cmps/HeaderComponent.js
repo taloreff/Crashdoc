@@ -18,6 +18,7 @@ export default function HeaderComponent({ navigation }) {
           style={styles.profilePic}
         />
       </TouchableOpacity>
+      <Text style={styles.title}>Crashdoc</Text>
       <TopNavigation />
     </View>
   );
@@ -46,5 +47,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+    alignItems: "center",
   },
 });

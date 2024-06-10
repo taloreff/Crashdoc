@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -24,14 +24,11 @@ const CreateCase = ({ navigation }) => {
   const [License_number, setLicense_number] = useState("");
   const [Vehicle_model, setVehicle_model] = useState("");
   const [documents, setDocuments] = useState({});
-  const [swiperKey, setSwiperKey] = useState(0);
+  const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
+
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
   };
-
-  useEffect(() => {
-    setSwiperKey((prevKey) => prevKey + 1);
-  }, [documents]);
 
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
@@ -72,6 +69,10 @@ const CreateCase = ({ navigation }) => {
                 ...prevDocuments,
                 [docType]: result.assets[0].uri,
               }));
+
+              if (!uploadedFirstPhoto) {
+                setUploadedFirstPhoto(true);
+              }
             }
           },
         },
@@ -90,6 +91,10 @@ const CreateCase = ({ navigation }) => {
                 ...prevDocuments,
                 [docType]: result.assets[0].uri,
               }));
+
+              if (!uploadedFirstPhoto) {
+                setUploadedFirstPhoto(true);
+              }
             }
           },
         },
@@ -168,7 +173,6 @@ const CreateCase = ({ navigation }) => {
 
           <View style={styles.documentContainer}>
             <Swiper
-              key={swiperKey}
               style={styles.wrapper}
               showsButtons={true}
               loop={false}
@@ -186,7 +190,7 @@ const CreateCase = ({ navigation }) => {
                 "INSURANCE",
                 "REGISTRATION",
                 "ADDITIONAL DOCUMENT",
-              ].map((docType) => (
+              ].map((docType, index) => (
                 <View style={styles.slide} key={docType}>
                   <TouchableOpacity
                     style={styles.documentButton}
@@ -222,8 +226,7 @@ const CreateCase = ({ navigation }) => {
               !Phone_number ||
               !Vehicle_number ||
               !License_number ||
-              !Vehicle_model ||
-              Object.keys(documents).length < 4
+              !Vehicle_model
                 ? styles.disabledButton
                 : null,
             ]}
@@ -282,9 +285,9 @@ const styles = StyleSheet.create({
   documentContainer: {
     marginVertical: 0,
   },
-  wrapper: {},
   swiperContainer: {
     height: 180,
+    width: "100%",
   },
   slide: {
     flex: 1,
@@ -344,7 +347,7 @@ const styles = StyleSheet.create({
   },
   swiperButton: {
     color: "#e23680",
-    fontSize: 50,
+    fontSize: 70,
     fontWeight: "bold",
   },
   paginationStyle: {

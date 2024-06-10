@@ -11,6 +11,7 @@ async function createCase(req, res) {
       License_number,
       Vehicle_model,
       documents,
+      damagePhotos,
     } = req.body;
 
     const token = req.headers.authorization.split(" ")[1];
@@ -24,6 +25,7 @@ async function createCase(req, res) {
       License_number,
       Vehicle_model,
       documents: documents || [],
+      damagePhotos: damagePhotos || [],
     });
     const savedCase = await newCase.save();
 
@@ -105,6 +107,7 @@ async function updateCase(req, res) {
       License_number,
       Vehicle_model,
       documents,
+      damagePhotos,
     } = req.body;
     const updatedCase = await caseModel.findByIdAndUpdate(
       id,
@@ -115,6 +118,7 @@ async function updateCase(req, res) {
         License_number,
         Vehicle_model,
         documents,
+        damagePhotos,
       },
       { new: true }
     );
