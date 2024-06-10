@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   Animated,
+  Alert, // Add this line
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -15,11 +16,10 @@ import Swiper from "react-native-swiper";
 import { createCaseService } from "../services/createCase.service";
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
-  const [damagePhotos, setDamagePhotos] = useState([]);
+  const [damagePhotos, setDamagePhotos] = useState({});
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(new Animated.Value(0));
-  const [document, setDocuments] = useState({});
-  const [swiperKey, setSwiperKey] = useState(0);
+  const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
 
   const {
     ID_user,
@@ -29,28 +29,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     Vehicle_model,
     documents,
   } = route.params;
-
-  const handlePhotoUpload = async (index) => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        console.log("result", result);
-        setDamagePhotos((prevPhotos) => {
-          const newPhotos = [...prevPhotos];
-          newPhotos[index] = result.assets[0].uri;
-          return newPhotos;
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading photo:", error);
-    }
-  };
 
   const handleCaseSubmit = async () => {
     try {
@@ -76,10 +54,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     }
   };
 
-  useEffect(() => {
-    setSwiperKey((prevKey) => prevKey + 1);
-  }, [documents]);
-
   const handleAssessDamage = async () => {
     setProcessing(true);
     Animated.timing(progress, {
@@ -92,21 +66,81 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     });
   };
 
-  const handleDocumentUpload = async (docType) => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+  const requestPermissions = async () => {
+    const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+    const mediaLibraryStatus =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    return (
+      cameraStatus.status === "granted" &&
+      mediaLibraryStatus.status === "granted"
+    );
+  };
 
-      if (!result.canceled) {
-        setDocuments({ ...documents, [docType]: result.assets[0].uri });
-      }
-    } catch (error) {
-      console.error("Error uploading document:", error);
+  const handlePhotoUpload = async (docType) => {
+    const hasPermissions = await requestPermissions();
+
+    if (!hasPermissions) {
+      Alert.alert(
+        "Permission required",
+        "Please allow camera and media library permissions in your settings."
+      );
+      return;
     }
+
+    Alert.alert(
+      "Upload Photo",
+      "Choose an option",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              setDamagePhotos((prevPhotos) => ({
+                ...prevPhotos,
+                [docType]: result.assets[0].uri,
+              }));
+
+              if (!uploadedFirstPhoto) {
+                setUploadedFirstPhoto(true);
+              }
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.All,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              setDamagePhotos((prevPhotos) => ({
+                ...prevPhotos,
+                [docType]: result.assets[0].uri,
+              }));
+
+              if (!uploadedFirstPhoto) {
+                setUploadedFirstPhoto(true);
+              }
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -117,19 +151,9 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             <Text style={{ color: "#e23680" }}>Damage</Text> assessment
           </Text>
         </View>
-        <View style={styles.photoPreviewContainer}>
-          {damagePhotos.map((photoUri, index) => (
-            <Image
-              key={index}
-              source={{ uri: photoUri }}
-              style={styles.photoPreview}
-            />
-          ))}
-        </View>
 
         <View style={styles.documentContainer}>
           <Swiper
-            key={swiperKey}
             style={styles.wrapper}
             showsButtons={true}
             loop={false}
@@ -140,37 +164,39 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             nextButton={<Text style={styles.swiperButton}>›</Text>}
             prevButton={<Text style={styles.swiperButton}>‹</Text>}
             paginationStyle={styles.paginationStyle}
+            horizontal={true}
           >
             {[
-              "Upload Damage Photo",
-              "Upload Damage Photo",
-              "Upload Damage Photo",
-              "Upload Damage Photo",
-              "Upload Damage Photo",
-            ].map((docType, index) => (
-              <View style={styles.slide} key={index}>
-                <TouchableOpacity
-                  style={styles.documentButton}
-                  onPress={() => handleDocumentUpload(docType)}
-                >
-                  {documents[docType] ? (
-                    <Image
-                      source={{ uri: documents[docType] }}
-                      style={styles.documentImage}
-                    />
-                  ) : (
-                    <>
-                      <View style={styles.uploadIconContainer}>
-                        <Feather
-                          name="upload"
-                          size={18}
-                          style={styles.uploadIcon}
-                        />
-                      </View>
-                      <Text style={styles.documentButtonText}>{docType}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+              ["Upload Damage Photo 1", "Upload Damage Photo 2"],
+              ["Upload Damage Photo 3", "Upload Damage Photo 4"],
+              ["Upload Damage Photo 5"],
+            ].map((docPair, index) => (
+              <View style={styles.slide} key={`pair-${index}`}>
+                {docPair.map((docType) => (
+                  <TouchableOpacity
+                    style={styles.documentButton}
+                    key={docType}
+                    onPress={() => handlePhotoUpload(docType)}
+                  >
+                    {documents[docType] ? (
+                      <Image
+                        source={{ uri: documents[docType] }}
+                        style={styles.documentImage}
+                      />
+                    ) : (
+                      <>
+                        <View style={styles.uploadIconContainer}>
+                          <Feather
+                            name="upload"
+                            size={18}
+                            style={styles.uploadIcon}
+                          />
+                        </View>
+                        <Text style={styles.documentButtonText}>{docType}</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                ))}
               </View>
             ))}
           </Swiper>
@@ -214,62 +240,27 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
   },
-  photoButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.2)",
-  },
-  photoButtonText: {
-    color: "rgba(0, 0, 0, 0.5)",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  photoPreviewContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-    marginVertical: 16,
-  },
-  photoPreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    margin: 8,
-  },
-  swiperContainer: {
-    height: 180,
-  },
-  slide: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   documentContainer: {
-    marginVertical: 0,
+    marginVertical: 20,
   },
-  wrapper: {},
   swiperContainer: {
     height: 180,
+    width: "100%",
   },
   slide: {
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
   },
   documentButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 10,
     position: "relative",
   },
   documentButtonText: {
@@ -277,11 +268,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
+    marginTop: 5,
   },
   uploadIconContainer: {
     width: 30,
     height: 30,
-    borderRadius: 20,
+    borderRadius: 15,
     backgroundColor: "#e23680",
     justifyContent: "center",
     alignItems: "center",
@@ -293,34 +285,33 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   documentImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 60,
-    resizeMode: "cover",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   dotStyle: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
-    bottom: -15,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
   },
   activeDotStyle: {
     backgroundColor: "#e23680",
-    bottom: -15,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
   },
   swiperButton: {
     color: "#e23680",
-    fontSize: 50,
+    fontSize: 40,
     fontWeight: "bold",
   },
   paginationStyle: {
-    marginTop: 20,
+    marginTop: 10,
   },
   assessButton: {
     backgroundColor: "#fff",

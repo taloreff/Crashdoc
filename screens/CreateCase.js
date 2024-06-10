@@ -122,8 +122,7 @@ const CreateCase = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : null}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.header}>
@@ -183,37 +182,41 @@ const CreateCase = ({ navigation }) => {
               nextButton={<Text style={styles.swiperButton}>›</Text>}
               prevButton={<Text style={styles.swiperButton}>‹</Text>}
               paginationStyle={styles.paginationStyle}
+              horizontal={true}
             >
               {[
-                "THE DRIVER'S LICENCE",
-                "THE DRIVER'S VEHICLE LICENSE",
-                "INSURANCE",
-                "REGISTRATION",
-                "ADDITIONAL DOCUMENT",
-              ].map((docType, index) => (
-                <View style={styles.slide} key={docType}>
-                  <TouchableOpacity
-                    style={styles.documentButton}
-                    onPress={() => handleDocumentUpload(docType)}
-                  >
-                    {documents[docType] ? (
-                      <Image
-                        source={{ uri: documents[docType] }}
-                        style={styles.documentImage}
-                      />
-                    ) : (
-                      <>
-                        <View style={styles.uploadIconContainer}>
-                          <Feather
-                            name="upload"
-                            size={18}
-                            style={styles.uploadIcon}
-                          />
-                        </View>
-                        <Text style={styles.documentButtonText}>{docType}</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                ["THE DRIVER'S LICENCE", "THE DRIVER'S VEHICLE LICENSE"],
+                ["INSURANCE", "REGISTRATION"],
+                ["ADDITIONAL DOCUMENT"],
+              ].map((docPair, index) => (
+                <View style={styles.slide} key={`pair-${index}`}>
+                  {docPair.map((docType) => (
+                    <TouchableOpacity
+                      style={styles.documentButton}
+                      key={docType}
+                      onPress={() => handleDocumentUpload(docType)}
+                    >
+                      {documents[docType] ? (
+                        <Image
+                          source={{ uri: documents[docType] }}
+                          style={styles.documentImage}
+                        />
+                      ) : (
+                        <>
+                          <View style={styles.uploadIconContainer}>
+                            <Feather
+                              name="upload"
+                              size={18}
+                              style={styles.uploadIcon}
+                            />
+                          </View>
+                          <Text style={styles.documentButtonText}>
+                            {docType}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ))}
                 </View>
               ))}
             </Swiper>
@@ -253,6 +256,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   scrollViewContent: {
+    flexGrow: 1,
     padding: 16,
   },
   header: {
@@ -266,7 +270,6 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderWidth: 0,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.2)",
@@ -283,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   documentContainer: {
-    marginVertical: 0,
+    marginVertical: 20,
   },
   swiperContainer: {
     height: 180,
@@ -291,17 +294,18 @@ const styles = StyleSheet.create({
   },
   slide: {
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
   },
   documentButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 10,
     position: "relative",
   },
   documentButtonText: {
@@ -309,11 +313,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
+    marginTop: 5,
   },
   uploadIconContainer: {
     width: 30,
     height: 30,
-    borderRadius: 20,
+    borderRadius: 15,
     backgroundColor: "#e23680",
     justifyContent: "center",
     alignItems: "center",
@@ -325,42 +330,42 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   documentImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   dotStyle: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
-    bottom: -15,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
   },
   activeDotStyle: {
     backgroundColor: "#e23680",
-    bottom: -15,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
   },
   swiperButton: {
     color: "#e23680",
-    fontSize: 70,
+    fontSize: 40,
     fontWeight: "bold",
   },
   paginationStyle: {
-    marginTop: 20,
+    marginTop: 10,
   },
   submitButton: {
     backgroundColor: "#e23680",
-    paddingVertical: 20,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 44,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginBottom: 20,
   },
   disabledButton: {
     backgroundColor: "#e23680",

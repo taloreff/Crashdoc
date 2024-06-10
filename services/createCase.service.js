@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadService } from "./upload.service.js";
 
 export const createCaseService = {
-  handleFormPress: async (description, location, image, navigation) => {
+  handleCasePress: async (description, location, image, navigation) => {
     try {
       if (!description.trim()) {
         alert("Please enter a description.");

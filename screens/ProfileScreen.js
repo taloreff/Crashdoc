@@ -9,6 +9,10 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -42,7 +46,10 @@ const ProfileScreen = ({ navigation }) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== "granted") {
-      alert("Sorry, we need camera roll permissions to make this work!");
+      Alert.alert(
+        "Permission required",
+        "We need camera roll permissions to make this work!"
+      );
       return;
     }
 
@@ -53,7 +60,7 @@ const ProfileScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setProfileImage({ uri: result.assets[0].uri });
     }
   };
@@ -119,85 +126,84 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-      <View style={styles.container}>
-        <View style={styles.profileContainer}>
-          <View style={styles.profileImageContainer}>
-            <Image source={profileImage} style={styles.profileImage} />
-            <TouchableOpacity
-              style={styles.editIconContainer}
-              onPress={handleEditProfileImage}
-            >
-              <View>
-                <Feather name="edit-3" size={16} color="white" />
-              </View>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputEditContainer}>
-            <View style={styles.inputContainer}>
-              <View style={styles.icon}>
-                <Feather name="user" size={22} color="black" />
-              </View>
-              <TextInput
-                style={styles.input}
-                selectionColor="#3662AA"
-                onChangeText={setUsername}
-                value={username}
-              />
-            </View>
-          </View>
-          <View style={styles.inputEditContainer}>
-            <View style={styles.inputContainer}>
-              <View style={styles.icon}>
-                <Feather name="mail" size={22} color="black" />
-              </View>
-              <TextInput
-                style={styles.input}
-                keyboardType="email-address"
-                selectionColor="#3662AA"
-                onChangeText={setEmail}
-                value={email}
-              />
-            </View>
-          </View>
-          <View style={styles.inputEditContainer}>
-            <View style={styles.inputContainer}>
-              <View style={styles.icon}>
-                <Feather name="lock" size={22} color="black" />
-              </View>
-              <TextInput
-                style={styles.input}
-                placeholder="********"
-                placeholderTextColor="#7C808D"
-                selectionColor="#3662AA"
-                onChangeText={setPassword}
-                secureTextEntry={!passwordIsVisible}
-              />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <View style={styles.profileContainer}>
+            <View style={styles.profileImageContainer}>
+              <Image source={profileImage} style={styles.profileImage} />
               <TouchableOpacity
-                style={styles.passwordVisibleButton}
-                onPress={() => setPasswordIsVisible(!passwordIsVisible)}
+                style={styles.editIconContainer}
+                onPress={handleEditProfileImage}
               >
-                <Feather
-                  name={passwordIsVisible ? "eye" : "eye-off"}
-                  size={20}
-                  color="black"
-                />
+                <Feather name="edit-3" size={16} color="white" />
               </TouchableOpacity>
             </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="user" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  selectionColor="#3662AA"
+                  onChangeText={setUsername}
+                  value={username}
+                  placeholder="Username"
+                />
+              </View>
+            </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="mail" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  keyboardType="email-address"
+                  selectionColor="#3662AA"
+                  onChangeText={setEmail}
+                  value={email}
+                  placeholder="Email"
+                />
+              </View>
+            </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="lock" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#7C808D"
+                  selectionColor="#3662AA"
+                  onChangeText={setPassword}
+                  secureTextEntry={!passwordIsVisible}
+                />
+                <TouchableOpacity
+                  style={styles.passwordVisibleButton}
+                  onPress={() => setPasswordIsVisible(!passwordIsVisible)}
+                >
+                  <Feather
+                    name={passwordIsVisible ? "eye" : "eye-off"}
+                    size={20}
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-        <TouchableOpacity
-          style={styles.updateButton}
-          onPress={handleUpdate}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.updateButtonText}>Update</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.updateButton}
+            onPress={handleUpdate}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.updateButtonText}>Update</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
         <TopNavigation />
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 };
@@ -205,15 +211,13 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-between",
     backgroundColor: "#fff",
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  backButton: {
-    fontSize: 20,
+  scrollViewContent: {
+    flexGrow: 1,
+    padding: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
   profileContainer: {
     alignItems: "center",
@@ -226,66 +230,45 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   profileImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     borderWidth: 4,
     borderColor: "#fff",
   },
   editIconContainer: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    bottom: 0,
+    right: 0,
     backgroundColor: "#e23680",
     borderRadius: 20,
     padding: 8,
   },
-  editIcon: {
-    fontSize: 20,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 150,
-  },
-  fieldContainer: {
-    flexDirection: "row",
+  inputEditContainer: {
+    width: "100%",
+    marginBottom: 20,
     alignItems: "center",
-    marginTop: 16,
   },
-  fieldIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  fieldText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  editButton: {
+  inputContainer: {
     flexDirection: "row",
-    width: "20%",
+    width: "80%",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    height: 50,
     borderColor: "gray",
     borderRadius: 12,
     borderWidth: 1,
-    marginVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: "#e23680",
+    backgroundColor: "#F3F3F6FF",
   },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#fff",
+  icon: {
+    marginRight: 15,
   },
-  showPasswordButton: {
-    paddingHorizontal: 8,
+  input: {
+    flex: 1,
+    height: 50,
   },
-  showPasswordIcon: {
-    fontSize: 24,
+  passwordVisibleButton: {
+    position: "absolute",
+    right: 10,
   },
   updateButton: {
     backgroundColor: "#e23680",
@@ -293,51 +276,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 36,
     alignItems: "center",
-    marginHorizontal: 38,
-    flexDirection: "row",
     justifyContent: "center",
+    width: "80%",
+    marginVertical: 20,
   },
   updateButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  TopNavigation: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  navIcon: {
-    fontSize: 24,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    width: "80%",
-    alignItems: "center",
-    marginTop: 10,
-    height: 50,
-    borderColor: "gray",
-    borderRadius: 12,
-    borderWidth: 1,
-    marginVertical: 20,
-    paddingHorizontal: 10,
-  },
-  icon: {
-    marginRight: 15,
-  },
-  inputEditContainer: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    width: "100%",
-  },
-  passwordVisibleButton: {
-    position: "absolute",
-    right: 10,
   },
 });
 

@@ -8,7 +8,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  Animated,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HeaderComponent from "../cmps/HeaderComponent.js";
@@ -68,7 +67,7 @@ const HomePage = ({ navigation }) => {
 
   const hideDialog = () => {
     setShowSafetyDialog(false);
-  }
+  };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -90,16 +89,21 @@ const HomePage = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.bottomContainer}>
-          {showSafetyDialog && <View style={styles.safetyDialogContainer}>
-            <Text style={styles.safetyText}>Ensure your safety</Text>
-            <Text style={styles.safetySubText}>
-              By wearing a yellow vest, placing a caution triangle and obeying
-              traffic laws
-            </Text>
-            <TouchableOpacity style={styles.closeDialogButton} onPress={hideDialog}>
-              <Text style={styles.closeButtonText}>x</Text>
-            </TouchableOpacity>
-          </View>}
+          {showSafetyDialog && (
+            <View style={styles.safetyDialogContainer}>
+              <Text style={styles.safetyText}>Ensure your safety</Text>
+              <Text style={styles.safetySubText}>
+                By wearing a yellow vest, placing a caution triangle and obeying
+                traffic laws
+              </Text>
+              <TouchableOpacity
+                style={styles.closeDialogButton}
+                onPress={hideDialog}
+              >
+                <Text style={styles.closeButtonText}>x</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           <View style={styles.sosSliderContainer}>
             <SOSSlider onSlide={handleSOS} />
           </View>
@@ -133,8 +137,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 80,
     color: "#fff",
+    lineHeight: 80, // Ensure the line height matches the font size
     textAlign: "center",
-    lineHeight: 80,
+    textAlignVertical: "center", // For Android vertical alignment
   },
   tapBtnText: {
     fontSize: 16,
