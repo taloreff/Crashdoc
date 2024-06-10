@@ -2,7 +2,7 @@ const express = require("express");
 const {
   createUser,
   login,
-  updateUserProfile,
+  updateUser,
   getUserByID,
   getUserByEmail,
 } = require("../controllers/userController.js");
@@ -16,6 +16,6 @@ router.get("/email/:userEmail", getUserByEmail);
 
 router.post("/login", login);
 
-router.put("/:userId", updateUserProfile);
+router.put("/:userId", updateUser);
 
 module.exports = router;

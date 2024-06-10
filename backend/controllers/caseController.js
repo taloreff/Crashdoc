@@ -5,7 +5,7 @@ const { redis } = require("../utils/redisClient.js");
 async function createCase(req, res) {
   try {
     const {
-      ID_uesr,
+      ID_user,
       Phone_number,
       Vehicle_number,
       License_number,
@@ -19,7 +19,8 @@ async function createCase(req, res) {
     const userId = decodedToken.user.id;
 
     const newCase = new caseModel({
-      ID_uesr,
+      user: userId,
+      ID_user,
       Phone_number,
       Vehicle_number,
       License_number,
@@ -28,7 +29,7 @@ async function createCase(req, res) {
       damagePhotos: damagePhotos || [],
     });
     const savedCase = await newCase.save();
-
+    console.log("saved case: ", savedCase);
     redis.del("cases");
 
     res.status(201).json(savedCase);

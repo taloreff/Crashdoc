@@ -93,17 +93,17 @@ async function login(req, res) {
   }
 }
 
-async function updateUserProfile(req, res) {
+async function updateUser(req, res) {
   try {
     console.log("req.body", req.body);
     console.log("req.params", req.params);
     const { userId } = req.params;
-    const { username, image, email, posts } = req.body;
+    const { username, image, email, cases } = req.body;
 
     // Update user profile in the database
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
-      { username, email, image, posts },
+      { username, email, image, cases },
       { new: true }
     );
 
@@ -121,11 +121,10 @@ async function updateUserProfile(req, res) {
   }
 }
 
-
 module.exports = {
   createUser,
   getUserByID,
   getUserByEmail,
-  updateUserProfile,
+  updateUser,
   login,
 };

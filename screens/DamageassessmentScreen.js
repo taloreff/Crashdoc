@@ -42,13 +42,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         damagePhotos,
       };
 
-      const response = await createCaseService(data);
-
-      if (response.success) {
-        navigation.navigate("Home Page", { caseData: data });
-      } else {
-        console.error("Failed to create case:", response.error);
-      }
+      await createCaseService.handleCasePress(data);
+      navigation.navigate("Home Page");
     } catch (error) {
       console.error("Error creating case:", error);
     }
@@ -178,9 +173,9 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                     key={docType}
                     onPress={() => handlePhotoUpload(docType)}
                   >
-                    {documents[docType] ? (
+                    {damagePhotos[docType] ? (
                       <Image
-                        source={{ uri: documents[docType] }}
+                        source={{ uri: damagePhotos[docType] }}
                         style={styles.documentImage}
                       />
                     ) : (

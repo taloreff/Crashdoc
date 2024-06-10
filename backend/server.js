@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes.js");
+const caseRoutes = require("./routes/caseRoutes.js");
 const env = require("dotenv");
 const cors = require("cors");
 
@@ -26,6 +27,7 @@ app.use(cors(corsOptions));
 
 // Routes
 app.use("/user", userRoutes);
+app.use("/case", caseRoutes);
 
 app.get("/", (req, res) => {
   res.send("hello!");
