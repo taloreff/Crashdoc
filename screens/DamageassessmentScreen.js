@@ -8,12 +8,15 @@ import {
   ScrollView,
   Image,
   Animated,
-  Alert, // Add this line
+  Alert,
 } from "react-native";
+import axios from "axios";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import { createCaseService } from "../services/createCase.service";
+import client from "../backend/api/client";
+import { uploadService } from "../services/upload.service";
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState({});
@@ -51,14 +54,33 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
 
   const handleAssessDamage = async () => {
     setProcessing(true);
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: 5000,
-      useNativeDriver: false,
-    }).start(() => {
+    try {
+      const photoKeys = Object.keys(damagePhotos);
+      const base64Img = `data:image/jpg;base64,${await fetch(
+        damagePhotos[photoKeys[0]]
+      )
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            })
+        )}`;
+      const imgData = await uploadService.uploadImg(base64Img);
+
+      const response = await client.post("/upload", { imageUrl: imgData.url });
+
+      const result = response.data.result;
+      Alert.alert("Assessment Result", result);
+    } catch (error) {
+      console.error("Error assessing damage:", error);
+      Alert.alert("Error", "Failed to assess damage. Please try again.");
+    } finally {
       setProcessing(false);
-      setProgress(new Animated.Value(0));
-    });
+    }
   };
 
   const requestPermissions = async () => {
@@ -71,7 +93,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     );
   };
 
-  const handlePhotoUpload = async (docType) => {
+  const handlePhotoUpload = async (docType, index) => {
     const hasPermissions = await requestPermissions();
 
     if (!hasPermissions) {
@@ -98,7 +120,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             if (!result.canceled) {
               setDamagePhotos((prevPhotos) => ({
                 ...prevPhotos,
-                [docType]: result.assets[0].uri,
+                [`damagePhoto${index}`]: result.assets[0].uri,
               }));
 
               if (!uploadedFirstPhoto) {
@@ -120,7 +142,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             if (!result.canceled) {
               setDamagePhotos((prevPhotos) => ({
                 ...prevPhotos,
-                [docType]: result.assets[0].uri,
+                [`damagePhoto${index}`]: result.assets[0].uri,
               }));
 
               if (!uploadedFirstPhoto) {
@@ -165,17 +187,23 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
               ["Upload Damage Photo 1", "Upload Damage Photo 2"],
               ["Upload Damage Photo 3", "Upload Damage Photo 4"],
               ["Upload Damage Photo 5"],
-            ].map((docPair, index) => (
-              <View style={styles.slide} key={`pair-${index}`}>
-                {docPair.map((docType) => (
+            ].map((docPair, pairIndex) => (
+              <View style={styles.slide} key={`pair-${pairIndex}`}>
+                {docPair.map((docType, index) => (
                   <TouchableOpacity
                     style={styles.documentButton}
                     key={docType}
-                    onPress={() => handlePhotoUpload(docType)}
+                    onPress={() =>
+                      handlePhotoUpload(docType, pairIndex * 2 + index + 1)
+                    }
                   >
-                    {damagePhotos[docType] ? (
+                    {damagePhotos[`damagePhoto${pairIndex * 2 + index + 1}`] ? (
                       <Image
-                        source={{ uri: damagePhotos[docType] }}
+                        source={{
+                          uri: damagePhotos[
+                            `damagePhoto${pairIndex * 2 + index + 1}`
+                          ],
+                        }}
                         style={styles.documentImage}
                       />
                     ) : (
