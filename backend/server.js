@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes.js");
 const caseRoutes = require("./routes/caseRoutes.js");
-require("dotenv").config()
+require("dotenv").config();
 const cors = require("cors");
 const multer = require("multer");
 const axios = require("axios");
@@ -50,11 +50,12 @@ const upload = multer({ dest: "uploads/" });
 // Upload and process photos endpoint
 app.post("/upload", async (req, res) => {
   try {
-    const { imageUrl } = req.body;
+    const { imageUrls } = req.body;
     // Check cache
-    if (cache[imageUrl]) {
+    const cacheKey = imageUrls.join(",");
+    if (cache[cacheKey]) {
       console.log("Returning cached result");
-      return res.json({ result: cache[imageUrl] });
+      return res.json({ result: cache[cacheKey] });
     }
 
     // Rate limiting
@@ -65,16 +66,19 @@ app.post("/upload", async (req, res) => {
     }
     lastRequestTime = Date.now();
 
-    // Fetch and process the image with OpenAI
-    const response = await processImageWithGpt(imageUrl);
+    // Fetch and process the images with OpenAI
+    const responses = await Promise.all(
+      imageUrls.map((url) => processImageWithGpt(url))
+    );
+    const result = responses.join(",");
 
     // Cache the result
-    cache[imageUrl] = response;
+    cache[cacheKey] = result;
 
-    res.json({ result: response });
+    res.json({ result });
   } catch (error) {
-    console.error("Error processing image:", error);
-    res.status(500).json({ error: "Failed to process image" });
+    console.error("Error processing images:", error);
+    res.status(500).json({ error: "Failed to process images" });
   }
 });
 
@@ -82,26 +86,27 @@ async function processImageWithGpt(imageUrl) {
   try {
     let imageAsBase64;
     // Download the image
-    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-    imageAsBase64 = Buffer.from(response.data, 'binary').toString('base64');
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    imageAsBase64 = Buffer.from(response.data, "binary").toString("base64");
     const prompt = `This GPT acts as an Automobile Appraiser. When a user sends a picture of a car that has been involved in an accident, it assesses the damage using a scale of 1 to 3. The scale is as follows: 1 describes minor damage, such as light scratches or dents that can be fixed for up to $750. 2 describes medium damage, such as a bumped rear or broken windshield, costing between $750 and $1500 to repair. 3 describes a total loss, meaning the car is out of use and cannot be repaired or fixed. When an image is sent, the GPT should only reply with the number 1, 2, or 3, without any additional information or text. The GPT should always adhere strictly to this scale and provide clear, unbiased assessments based solely on the visible damage.`;
 
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-4o", // Ensure you use the right model
-      messages: [{
-        role: "user",
-        content: [
-          { type: "text", text: prompt },
-          {
-            type: "image_url", image_url: {
-              url: `data:image/jpeg;base64,${imageAsBase64}`
-            }
-          },
-        ]
-      }
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${imageAsBase64}`,
+              },
+            },
+          ],
+        },
       ],
-    })
-
+    });
 
     // Log the full response for debugging
     console.log("Full response from OpenAI:", aiResponse);

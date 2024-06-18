@@ -56,25 +56,56 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     setProcessing(true);
     try {
       const photoKeys = Object.keys(damagePhotos);
-      const base64Img = `data:image/jpg;base64,${await fetch(
-        damagePhotos[photoKeys[0]]
-      )
-        .then((response) => response.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        )}`;
-      const imgData = await uploadService.uploadImg(base64Img);
+      const base64Imgs = await Promise.all(
+        photoKeys.map(async (key) => {
+          const base64Img = `data:image/jpg;base64,${await fetch(
+            damagePhotos[key]
+          )
+            .then((response) => response.blob())
+            .then(
+              (blob) =>
+                new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => resolve(reader.result);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(blob);
+                })
+            )}`;
+          return base64Img;
+        })
+      );
 
-      const response = await client.post("/upload", { imageUrl: imgData.url });
+      const imgDataArray = await Promise.all(
+        base64Imgs.map(async (base64Img) => {
+          const imgData = await uploadService.uploadImg(base64Img);
+          return imgData.url;
+        })
+      );
+
+      const response = await client.post("/upload", {
+        imageUrls: imgDataArray,
+      });
 
       const result = response.data.result;
-      Alert.alert("Assessment Result", result);
+
+      let message;
+      switch (result) {
+        case "1":
+          message = "Your damage is light, no need to sue";
+          break;
+        case "2":
+          message =
+            "Your damage is medium, you might want to sue your insurance company";
+          break;
+        case "3":
+          message =
+            "Your damage is hard, you must contact your insurance company";
+          break;
+        default:
+          message = "Unknown assessment result";
+      }
+
+      Alert.alert("Assessment Result", message);
     } catch (error) {
       console.error("Error assessing damage:", error);
       Alert.alert("Error", "Failed to assess damage. Please try again.");
