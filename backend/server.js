@@ -2,26 +2,20 @@ const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes.js");
 const caseRoutes = require("./routes/caseRoutes.js");
-const env = require("dotenv");
+require("dotenv").config()
 const cors = require("cors");
 const multer = require("multer");
+const axios = require("axios");
 const { OpenAI } = require("openai");
 const path = require("path");
 const fs = require("fs");
+const { type } = require("os");
 
-env.config();
 const app = express();
 const PORT = process.env.PORT || 3030;
 const MongoDB = process.env.MongoDB;
 
-// Ensure the uploads directory exists
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
 // MongoDB connection
-console.log("MongoDB", MongoDB);
 mongoose
   .connect(MongoDB)
   .then(() => console.log("MongoDB connected"))
@@ -56,9 +50,7 @@ const upload = multer({ dest: "uploads/" });
 // Upload and process photos endpoint
 app.post("/upload", async (req, res) => {
   try {
-    const { imageUrl } = req.body; // assuming the client sends the image URL in the request body
-    console.log("imageurl", imageUrl);
-
+    const { imageUrl } = req.body;
     // Check cache
     if (cache[imageUrl]) {
       console.log("Returning cached result");
@@ -71,12 +63,10 @@ app.post("/upload", async (req, res) => {
       const waitTime = REQUEST_INTERVAL - (now - lastRequestTime);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
-
     lastRequestTime = Date.now();
 
-    // Process the image URL with GPT-3.5
+    // Fetch and process the image with OpenAI
     const response = await processImageWithGpt(imageUrl);
-    console.log("response from gpt", response);
 
     // Cache the result
     cache[imageUrl] = response;
@@ -84,36 +74,45 @@ app.post("/upload", async (req, res) => {
     res.json({ result: response });
   } catch (error) {
     console.error("Error processing image:", error);
-    if (error.status === 429) {
-      res
-        .status(429)
-        .json({ error: "Rate limit exceeded. Please try again later." });
-    } else {
-      res.status(500).json({ error: "Failed to process image" });
-    }
+    res.status(500).json({ error: "Failed to process image" });
   }
 });
 
 async function processImageWithGpt(imageUrl) {
   try {
-    const prompt = `Assess the damage in this car image: ${imageUrl}.\nThis GPT acts as an Automobile Appraiser. When a user sends a picture of a car that has been involved in an accident, it assesses the damage using a scale of 1 to 3. The scale is as follows: 1 describes minor damage, such as light scratches or dents that can be fixed for up to $750. 2 describes medium damage, such as a bumped rear or broken windshield, costing between $750 and $1500 to repair. 3 describes a total loss, meaning the car is out of use and cannot be repaired or fixed. When an image is sent, the GPT should only reply with the number 1, 2, or 3, without any additional information or text. The GPT should always adhere strictly to this scale and provide clear, unbiased assessments based solely on the visible damage.`;
+    let imageAsBase64;
+    // Download the image
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    imageAsBase64 = Buffer.from(response.data, 'binary').toString('base64');
+    const prompt = `This GPT acts as an Automobile Appraiser. When a user sends a picture of a car that has been involved in an accident, it assesses the damage using a scale of 1 to 3. The scale is as follows: 1 describes minor damage, such as light scratches or dents that can be fixed for up to $750. 2 describes medium damage, such as a bumped rear or broken windshield, costing between $750 and $1500 to repair. 3 describes a total loss, meaning the car is out of use and cannot be repaired or fixed. When an image is sent, the GPT should only reply with the number 1, 2, or 3, without any additional information or text. The GPT should always adhere strictly to this scale and provide clear, unbiased assessments based solely on the visible damage.`;
 
-    const response = await openai.completions.create({
-      model: "text-embedding-ada-002",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 10,
-    });
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-4o", // Ensure you use the right model
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          {
+            type: "image_url", image_url: {
+              url: `data:image/jpeg;base64,${imageAsBase64}`
+            }
+          },
+        ]
+      }
+      ],
+    })
+
 
     // Log the full response for debugging
-    console.log("Full response from OpenAI:", response);
+    console.log("Full response from OpenAI:", aiResponse);
 
-    if (response && response.choices && response.choices.length > 0) {
-      return response.choices[0].message.content.trim();
+    if (aiResponse && aiResponse.choices && aiResponse.choices.length > 0) {
+      return aiResponse.choices[0].message.content.trim();
     } else {
       throw new Error("Unexpected response structure from OpenAI API");
     }
   } catch (error) {
-    console.error("Error in GPT-3 request:", error);
+    console.error("Error in GPT-4 request:", error);
     throw error;
   }
 }
