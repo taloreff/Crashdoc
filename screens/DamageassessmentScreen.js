@@ -75,15 +75,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         })
       );
 
-      const imgDataArray = await Promise.all(
-        base64Imgs.map(async (base64Img) => {
-          const imgData = await uploadService.uploadImg(base64Img);
-          return imgData.url;
-        })
-      );
-
       const response = await client.post("/upload", {
-        imageUrls: imgDataArray,
+        imageUrls: base64Imgs,
       });
 
       const result = response.data.result;
@@ -91,7 +84,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       let message;
       switch (result) {
         case "1":
-          message = "Your damage is light, no need to sue";
+          message = "Your damage is light, we wouldn't recommend you to sue your insurance company";
           break;
         case "2":
           message =

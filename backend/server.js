@@ -9,7 +9,7 @@ const axios = require("axios");
 const { OpenAI } = require("openai");
 const path = require("path");
 const fs = require("fs");
-const { type } = require("os");
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = process.env.PORT || 3030;
@@ -21,7 +21,9 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase the limit here
+app.use(bodyParser.json({ limit: '50mb' })); // Increase the limit here
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // Increase the limit here
 
 const corsOptions = {
   origin: "*",
@@ -51,6 +53,7 @@ const upload = multer({ dest: "uploads/" });
 app.post("/upload", async (req, res) => {
   try {
     const { imageUrls } = req.body;
+
     // Check cache
     const cacheKey = imageUrls.join(",");
     if (cache[cacheKey]) {
@@ -67,10 +70,7 @@ app.post("/upload", async (req, res) => {
     lastRequestTime = Date.now();
 
     // Fetch and process the images with OpenAI
-    const responses = await Promise.all(
-      imageUrls.map((url) => processImageWithGpt(url))
-    );
-    const result = responses.join(",");
+    const result = await processImagesWithGpt(imageUrls);
 
     // Cache the result
     cache[cacheKey] = result;
@@ -82,28 +82,30 @@ app.post("/upload", async (req, res) => {
   }
 });
 
-async function processImageWithGpt(imageUrl) {
+async function processImagesWithGpt(imageUrls) {
   try {
-    let imageAsBase64;
-    // Download the image
-    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
-    imageAsBase64 = Buffer.from(response.data, "binary").toString("base64");
+    const imagesAsBase64 = await Promise.all(
+      imageUrls.map(async (imageUrl) => {
+        const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+        return Buffer.from(response.data, "binary").toString("base64");
+      })
+    );
+
     const prompt = `This GPT acts as an Automobile Appraiser. When a user sends a picture of a car that has been involved in an accident, it assesses the damage using a scale of 1 to 3. The scale is as follows: 1 describes minor damage, such as light scratches or dents that can be fixed for up to $750. 2 describes medium damage, such as a bumped rear or broken windshield, costing between $750 and $1500 to repair. 3 describes a total loss, meaning the car is out of use and cannot be repaired or fixed. When an image is sent, the GPT should only reply with the number 1, 2, or 3, without any additional information or text. The GPT should always adhere strictly to this scale and provide clear, unbiased assessments based solely on the visible damage.`;
+
+    const messages = imagesAsBase64.map((imageAsBase64) => ({
+      type: "image_url",
+      image_url: {
+        url: `data:image/jpeg;base64,${imageAsBase64}`,
+      },
+    }));
 
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-4o", // Ensure you use the right model
       messages: [
         {
           role: "user",
-          content: [
-            { type: "text", text: prompt },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imageAsBase64}`,
-              },
-            },
-          ],
+          content: [{ type: "text", text: prompt }, ...messages],
         },
       ],
     });
