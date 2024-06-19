@@ -26,6 +26,14 @@ const CreateCase = ({ navigation }) => {
   const [documents, setDocuments] = useState({});
   const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
 
+  const documentTypeMapping = {
+    "DRIVER LICENSE": "driversLicense",
+    "VEHICLE LICENSE": "vehicleLicense",
+    "INSURANCE": "insurance",
+    "REGISTRATION": "registration",
+    "ADDITIONAL DOCUMENTS": "additionalDocuments"
+  };
+
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
   };
@@ -65,9 +73,10 @@ const CreateCase = ({ navigation }) => {
             });
 
             if (!result.canceled) {
+              const stateKey = documentTypeMapping[docType];
               setDocuments((prevDocuments) => ({
                 ...prevDocuments,
-                [docType]: result.assets[0].uri,
+                [stateKey]: result.assets[0].uri,
               }));
 
               if (!uploadedFirstPhoto) {
@@ -87,9 +96,10 @@ const CreateCase = ({ navigation }) => {
             });
 
             if (!result.canceled) {
+              const stateKey = documentTypeMapping[docType];
               setDocuments((prevDocuments) => ({
                 ...prevDocuments,
-                [docType]: result.assets[0].uri,
+                [stateKey]: result.assets[0].uri,
               }));
 
               if (!uploadedFirstPhoto) {
@@ -185,9 +195,9 @@ const CreateCase = ({ navigation }) => {
               horizontal={true}
             >
               {[
-                ["THE DRIVER'S LICENCE", "THE DRIVER'S VEHICLE LICENSE"],
+                ["DRIVER LICENSE", "VEHICLE LICENSE"],
                 ["INSURANCE", "REGISTRATION"],
-                ["ADDITIONAL DOCUMENT"],
+                ["ADDITIONAL DOCUMENTS"],
               ].map((docPair, index) => (
                 <View style={styles.slide} key={`pair-${index}`}>
                   {docPair.map((docType) => (
@@ -196,9 +206,9 @@ const CreateCase = ({ navigation }) => {
                       key={docType}
                       onPress={() => handleDocumentUpload(docType)}
                     >
-                      {documents[docType] ? (
+                      {documents[documentTypeMapping[docType]] ? (
                         <Image
-                          source={{ uri: documents[docType] }}
+                          source={{ uri: documents[documentTypeMapping[docType]] }}
                           style={styles.documentImage}
                         />
                       ) : (
@@ -226,10 +236,10 @@ const CreateCase = ({ navigation }) => {
             style={[
               styles.submitButton,
               !ID_user ||
-              !Phone_number ||
-              !Vehicle_number ||
-              !License_number ||
-              !Vehicle_model
+                !Phone_number ||
+                !Vehicle_number ||
+                !License_number ||
+                !Vehicle_model
                 ? styles.disabledButton
                 : null,
             ]}
@@ -360,7 +370,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: "#e23680",
-    paddingVertical: 12,
+    paddingVertical: 18,
     paddingHorizontal: 16,
     borderRadius: 44,
     alignItems: "center",

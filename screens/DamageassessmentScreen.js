@@ -23,6 +23,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(new Animated.Value(0));
   const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState(null);
 
   const {
     ID_user,
@@ -84,21 +85,35 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       let message;
       switch (result) {
         case "1":
-          message = "Your damage is light, we wouldn't recommend you to sue your insurance company";
+          message = (
+            <Text>
+              The assessment indicates that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>light</Text>. This typically includes minor scratches or dents that are superficial and do not affect the overall functionality of your vehicle. Based on this evaluation, it is generally not recommended to pursue a claim with your insurance company as the repair costs are likely to be relatively low and might not exceed your deductible.
+            </Text>
+          );
           break;
         case "2":
-          message =
-            "Your damage is medium, you might want to sue your insurance company";
+          message = (
+            <Text>
+              The assessment shows that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>moderate</Text>. This might involve issues such as a cracked windshield, minor body damage, or other repairs that could be more costly but are still manageable. In this case, you might want to consider contacting your insurance company to file a claim, as the repair costs could be significant enough to warrant it.
+            </Text>
+          );
           break;
         case "3":
-          message =
-            "Your damage is hard, you must contact your insurance company";
+          message = (
+            <Text>
+              The assessment reveals that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>severe</Text>. This could include major structural damage, extensive bodywork needed, or other significant repairs that affect the safety and usability of your vehicle. It is imperative that you contact your insurance company immediately to file a claim and begin the process of getting your vehicle repaired or replaced.
+            </Text>
+          );
           break;
         default:
-          message = "Unknown assessment result";
+          message = (
+            <Text>
+              The assessment result is <Text style={{ fontWeight: 'bold' }}>unknown</Text>. This might indicate an error in processing the images or an unexpected type of damage that could not be categorized. Please try again.
+            </Text>
+          );
       }
 
-      Alert.alert("Assessment Result", message);
+      setAssessmentResult(message);
     } catch (error) {
       console.error("Error assessing damage:", error);
       Alert.alert("Error", "Failed to assess damage. Please try again.");
@@ -106,6 +121,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       setProcessing(false);
     }
   };
+
 
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
@@ -249,22 +265,30 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
           </Swiper>
         </View>
 
-        <TouchableOpacity
-          style={styles.assessButton}
-          onPress={handleAssessDamage}
-          disabled={processing}
-        >
-          <Text style={styles.assessButtonText}>
-            {processing ? "Assessing..." : "Assess the Damage"}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.submitButton}
-          onPress={handleCaseSubmit}
-          disabled={processing}
-        >
-          <Text style={styles.submitButtonText}>Submit Case</Text>
-        </TouchableOpacity>
+        {assessmentResult && (
+          <View style={styles.assessmentResultContainer}>
+            {assessmentResult}
+          </View>
+        )}
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.assessButton}
+            onPress={handleAssessDamage}
+            disabled={processing}
+          >
+            <Text style={styles.assessButtonText}>
+              {processing ? "Assessing..." : "Assess the Damage"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={handleCaseSubmit}
+            disabled={processing}
+          >
+            <Text style={styles.submitButtonText}>Submit Case</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -367,10 +391,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    margin: 20,
+    marginBottom: 0,
     borderWidth: 1,
     borderColor: "#e23680",
-    borderRadius: 12,
+    borderRadius: 44,
   },
   assessButtonText: {
     color: "#e23680",
@@ -381,17 +406,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#e23680",
     paddingVertical: 18,
     paddingHorizontal: 16,
+    margin: 20,
+    marginBottom: 70,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
-    borderRadius: 12,
+    borderRadius: 44,
   },
   submitButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
+  assessmentResultContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.2)",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
+    // height: "75%",
+    justifyContent: "center"
+  },
+  assessmentResultText: {
+    fontSize: 18,
+    marginBottom: 10,
+    color: "rgba(0, 0, 0, 0.7)"
+  },
 });
+
 
 export default DamageAssessmentScreen;
