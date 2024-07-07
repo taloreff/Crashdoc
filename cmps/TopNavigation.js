@@ -57,6 +57,11 @@ const TopNavigation = () => {
     navigation.navigate("Profile Details");
   };
 
+  const goToMyCases = () => {
+    setShowMenu(false);
+    navigation.navigate("My Cases");
+  };
+
   useEffect(() => {
     Animated.timing(menuPosition, {
       toValue: showMenu ? 0 : 1,
@@ -92,7 +97,7 @@ const TopNavigation = () => {
                 <Text style={styles.menuActionText}>Log Out</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuAction}>
+            <TouchableOpacity onPress={goToMyCases} style={styles.menuAction}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Feather
                   name="file-text"

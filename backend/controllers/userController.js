@@ -121,10 +121,35 @@ async function updateUser(req, res) {
   }
 }
 
+async function updateUserEmail(req, res) {
+  try {
+    const { userId } = req.params;
+    const { email } = req.body;
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { email },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Email updated successfully!", user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating email" });
+  }
+}
+
 module.exports = {
   createUser,
   getUserByID,
   getUserByEmail,
   updateUser,
   login,
+  updateUserEmail,
 };

@@ -59,18 +59,12 @@ async function getAllCases(req, res) {
 
 async function getCasesByUser(req, res) {
   try {
-    const cacheKey = `cases:user:${req.params.userId}`;
-    redis.get(cacheKey, async (err, data) => {
-      if (err) throw err;
-
-      if (data) {
-        return res.status(200).json(JSON.parse(data));
-      } else {
-        const cases = await caseModel.find({ ID_uesr: req.params.userId });
-        redis.setex(cacheKey, 3600, JSON.stringify(cases));
-        res.status(200).json(cases);
-      }
-    });
+    const userId = req.params.userId;
+    const cases = await caseModel.find({ user: userId });
+    if (cases.length === 0) {
+      return res.status(404).json({ message: "No cases found for this user" });
+    }
+    res.status(200).json(cases);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

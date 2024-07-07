@@ -85,38 +85,47 @@ const ProfileScreen = ({ navigation }) => {
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const response = await client.get("/user/email/" + email);
-      const existingUser = response.data;
-      if (existingUser) {
-        const updatedUser = {
-          _id: existingUser._id,
+      const currentLoggedInUserID = await AsyncStorage.getItem(
+        "loggedInUserID"
+      );
+
+      // Check if email is changed
+      const userResponse = await client.get(`/user/${currentLoggedInUserID}`);
+      const { data } = userResponse;
+
+      if (data.email !== email) {
+        // Call the new update email endpoint
+        await client.put(`/user/update-email/${currentLoggedInUserID}`, {
           email,
-          username,
-          password,
-          image: profileImage.uri || null,
-        };
-
-        const base64Img = `data:image/jpg;base64,${await fetch(profileImage.uri)
-          .then((response) => response.blob())
-          .then(
-            (blob) =>
-              new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              })
-          )}`;
-        const imgData = await uploadService.uploadImg(base64Img);
-
-        updatedUser.image = imgData.secure_url;
-
-        await client.put(`/user/${loggedInUserID}`, updatedUser);
-
-        console.log("Success: Profile updated successfully!");
-        setProfilePic(updatedUser.image);
-        navigation.navigate("Home Page", { refresh: true });
+        });
       }
+
+      const updatedUser = {
+        email,
+        username,
+        image: profileImage.uri || null,
+      };
+
+      const base64Img = `data:image/jpg;base64,${await fetch(profileImage.uri)
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            })
+        )}`;
+      const imgData = await uploadService.uploadImg(base64Img);
+
+      updatedUser.image = imgData.secure_url;
+
+      await client.put(`/user/${currentLoggedInUserID}`, updatedUser);
+
+      console.log("Success: Profile updated successfully!");
+      setProfilePic(updatedUser.image);
+      navigation.navigate("Home Page", { refresh: true });
     } catch (error) {
       console.error("Error updating/creating user:", error);
     } finally {
@@ -170,12 +179,11 @@ const ProfileScreen = ({ navigation }) => {
               <View style={styles.inputContainer}>
                 <Feather name="lock" size={22} style={styles.icon} />
                 <TextInput
-                  style={styles.input}
-                  placeholder="Password"
+                  style={[styles.input, styles.uneditableInput]}
+                  placeholder="●●●●●●●●"
+                  editable={false}
                   placeholderTextColor="#7C808D"
                   selectionColor="#3662AA"
-                  onChangeText={setPassword}
-                  secureTextEntry={!passwordIsVisible}
                 />
                 <TouchableOpacity
                   style={styles.passwordVisibleButton}
@@ -238,7 +246,7 @@ const styles = StyleSheet.create({
   },
   editIconContainer: {
     position: "absolute",
-    bottom: 0,
+    top: 0,
     right: 0,
     backgroundColor: "#e23680",
     borderRadius: 20,
