@@ -6,21 +6,29 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
+  Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Shadow } from "react-native-shadow-2";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import client from "../backend/api/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+
+const { width } = Dimensions.get("window");
 
 const MyCases = () => {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCases = async () => {
       try {
         const userId = await AsyncStorage.getItem("loggedInUserID");
-        console.log("Fetching cases for user ID:", userId);
         const response = await client.get(`/case/user/${userId}`);
-        console.log("Cases fetched:", response.data);
         setCases(response.data);
       } catch (error) {
         console.error("Error fetching cases:", error);
@@ -33,27 +41,58 @@ const MyCases = () => {
   }, []);
 
   const renderCase = ({ item, index }) => (
-    <View style={styles.caseContainer}>
-      <View style={styles.caseNumberContainer}>
-        <Text style={styles.caseNumber}>{index + 1}</Text>
+    <Shadow distance={5} startColor="rgba(0, 0, 0, 0.05)" offset={[0, 5]}>
+      <View style={styles.caseContainer}>
+        <LinearGradient
+          colors={["#FF6B6B", "#E93382"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.caseNumberContainer}
+        >
+          <Text style={styles.caseNumber}>{index + 1}</Text>
+        </LinearGradient>
+        <View style={styles.caseContent}>
+          <View style={styles.caseHeader}>
+            <MaterialCommunityIcons
+              name="calendar-clock"
+              size={18}
+              color="#666"
+            />
+            <Text style={styles.caseDate}>
+              {new Date(item.createdAt).toLocaleString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
+          <View style={styles.caseHeader}>
+            <MaterialCommunityIcons name="car" size={18} color="#666" />
+            <Text style={styles.caseVehicleNumber}>{item.Vehicle_number}</Text>
+          </View>
+          {item.damagePhotos && item.damagePhotos.length > 0 && (
+            <Image
+              source={{ uri: item.damagePhotos[0].damagePhoto1 }}
+              style={styles.caseImage}
+            />
+          )}
+          <TouchableOpacity
+            style={styles.viewDetailsButton}
+            onPress={() =>
+              navigation.navigate("Case Details", { caseId: item._id })
+            }
+          >
+            <Text style={styles.viewDetailsText}>View Details</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.caseDate}>
-        Opened: {new Date(item.createdAt).toLocaleString()}
-      </Text>
-      <Text style={styles.caseVehicleNumber}>
-        Vehicle Number: {item.Vehicle_number}
-      </Text>
-      {item.damagePhotos.length > 0 && (
-        <Image
-          source={{ uri: item.damagePhotos[0] }}
-          style={styles.caseImage}
-        />
-      )}
-    </View>
+    </Shadow>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#E93382" />
       ) : (
@@ -62,66 +101,77 @@ const MyCases = () => {
           renderItem={renderCase}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
     padding: 16,
   },
   listContent: {
-    paddingVertical: 16,
+    paddingVertical: 8,
   },
   caseContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+    width: width - 32, // Full width with padding
+    alignSelf: "center",
+  },
+  caseContent: {
     padding: 16,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
-    position: "relative",
   },
   caseNumberContainer: {
-    backgroundColor: "#E93382",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 24,
-    height: 24,
-    position: "absolute",
-    top: -2,
-    left: 0,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   caseNumber: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  caseDate: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  caseHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
-    marginTop: 8,
+  },
+  caseDate: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 8,
   },
   caseVehicleNumber: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginLeft: 8,
   },
   caseImage: {
     width: "100%",
     height: 200,
     borderRadius: 8,
+    marginTop: 12,
+  },
+  viewDetailsButton: {
+    backgroundColor: "#E93382",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: "flex-end",
+    marginTop: 12,
+  },
+  viewDetailsText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 
