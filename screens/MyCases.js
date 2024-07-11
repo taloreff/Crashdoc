@@ -28,8 +28,8 @@ const MyCases = () => {
     const fetchCases = async () => {
       try {
         const userId = await AsyncStorage.getItem("loggedInUserID");
-        const response = await client.get(`/case/user/${userId}`);
-        setCases(response.data);
+        const { data: userData } = await client.get(`/user/${userId}`);
+        setCases(userData.cases);
       } catch (error) {
         console.error("Error fetching cases:", error);
       } finally {

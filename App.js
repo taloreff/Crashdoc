@@ -81,12 +81,12 @@ export default function App() {
           <Stack.Screen
             name="My Cases"
             component={MyCases}
-            options={{ headerTitle: "My Cases" }}
+            options={{ headerTitle: "" }}
           />
           <Stack.Screen
             name="Case Details"
             component={CaseDetails}
-            options={{ headerTitle: "Case Details" }}
+            options={{ headerTitle: "" }}
           />
         </Stack.Navigator>
       </NavigationContainer>

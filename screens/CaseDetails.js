@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Image,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Swiper from "react-native-swiper";
@@ -19,6 +20,7 @@ const CaseDetails = ({ route }) => {
   const { caseId } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("myDetails");
 
   useEffect(() => {
     const fetchCaseDetails = async () => {
@@ -62,6 +64,51 @@ const CaseDetails = ({ route }) => {
     </View>
   );
 
+  const renderDetails = (details) => (
+    <>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>User ID</Text>
+        <TextInput
+          style={styles.input}
+          value={details.userId}
+          editable={false}
+        />
+      </View>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Phone Number</Text>
+        <TextInput
+          style={styles.input}
+          value={details.phoneNumber}
+          editable={false}
+        />
+      </View>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Vehicle Number</Text>
+        <TextInput
+          style={styles.input}
+          value={details.vehicleNumber}
+          editable={false}
+        />
+      </View>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>License Number</Text>
+        <TextInput
+          style={styles.input}
+          value={details.licenseNumber}
+          editable={false}
+        />
+      </View>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>Vehicle Model</Text>
+        <TextInput
+          style={styles.input}
+          value={details.vehicleModel}
+          editable={false}
+        />
+      </View>
+    </>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -70,50 +117,53 @@ const CaseDetails = ({ route }) => {
     );
   }
 
+  const myDetails = caseDetails.userInfo;
+  const thirdPartyDetails = {
+    userId: caseDetails.thirdPartyId,
+    phoneNumber: caseDetails.phoneNumber,
+    vehicleNumber: caseDetails.vehicleNumber,
+    licenseNumber: caseDetails.licenseNumber,
+    vehicleModel: caseDetails.vehicleModel,
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "myDetails" && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab("myDetails")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "myDetails" && styles.activeTabButtonText,
+            ]}
+          >
+            My details
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "thirdPartyDetails" && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab("thirdPartyDetails")}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === "thirdPartyDetails" && styles.activeTabButtonText,
+            ]}
+          >
+            Third party details
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>ID User</Text>
-          <TextInput
-            style={styles.input}
-            value={caseDetails.userId}
-            editable={false}
-          />
-        </View>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            value={caseDetails.phoneNumber}
-            editable={false}
-          />
-        </View>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Vehicle Number</Text>
-          <TextInput
-            style={styles.input}
-            value={caseDetails.vehicleNumber}
-            editable={false}
-          />
-        </View>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>License Number</Text>
-          <TextInput
-            style={styles.input}
-            value={caseDetails.licenseNumber}
-            editable={false}
-          />
-        </View>
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>Vehicle Model</Text>
-          <TextInput
-            style={styles.input}
-            value={caseDetails.vehicleModel}
-            editable={false}
-          />
-        </View>
-
+        {activeTab === "myDetails" ? renderDetails(myDetails) : renderDetails(thirdPartyDetails)}
         {renderSwiperContent(
           caseDetails.documents.flatMap((doc) => Object.values(doc)),
           "Documents"
@@ -200,6 +250,30 @@ const styles = StyleSheet.create({
   },
   paginationStyle: {
     bottom: 10,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: "#ddd",
+  },
+  activeTabButton: {
+    borderBottomColor: "#E93382",
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#666",
+  },
+  activeTabButtonText: {
+    color: "#E93382",
   },
 });
 
