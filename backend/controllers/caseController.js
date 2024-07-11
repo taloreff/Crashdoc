@@ -5,26 +5,26 @@ const { redis } = require("../utils/redisClient.js");
 async function createCase(req, res) {
   try {
     const {
-      ID_user,
-      Phone_number,
-      Vehicle_number,
-      License_number,
-      Vehicle_model,
+      userId,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
       documents,
       damagePhotos,
     } = req.body;
 
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decodedToken.user.id;
+    const user_Id = decodedToken.user.id;
 
     const newCase = new caseModel({
       user: userId,
-      ID_user,
-      Phone_number,
-      Vehicle_number,
-      License_number,
-      Vehicle_model,
+      userId: user_Id,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
       documents: documents || [],
       damagePhotos: damagePhotos || [],
     });
@@ -97,10 +97,10 @@ async function updateCase(req, res) {
     const { id } = req.params;
     const {
       ID_uesr,
-      Phone_number,
-      Vehicle_number,
-      License_number,
-      Vehicle_model,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
       documents,
       damagePhotos,
     } = req.body;
@@ -108,10 +108,10 @@ async function updateCase(req, res) {
       id,
       {
         ID_uesr,
-        Phone_number,
-        Vehicle_number,
-        License_number,
-        Vehicle_model,
+        phoneNumber,
+        vehicleNumber,
+        licenseNumber,
+        vehicleModel,
         documents,
         damagePhotos,
       },

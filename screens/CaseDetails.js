@@ -77,7 +77,7 @@ const CaseDetails = ({ route }) => {
           <Text style={styles.label}>ID User</Text>
           <TextInput
             style={styles.input}
-            value={caseDetails.ID_user}
+            value={caseDetails.userId}
             editable={false}
           />
         </View>
@@ -85,7 +85,7 @@ const CaseDetails = ({ route }) => {
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
             style={styles.input}
-            value={caseDetails.Phone_number}
+            value={caseDetails.phoneNumber}
             editable={false}
           />
         </View>
@@ -93,7 +93,7 @@ const CaseDetails = ({ route }) => {
           <Text style={styles.label}>Vehicle Number</Text>
           <TextInput
             style={styles.input}
-            value={caseDetails.Vehicle_number}
+            value={caseDetails.vehicleNumber}
             editable={false}
           />
         </View>
@@ -101,7 +101,7 @@ const CaseDetails = ({ route }) => {
           <Text style={styles.label}>License Number</Text>
           <TextInput
             style={styles.input}
-            value={caseDetails.License_number}
+            value={caseDetails.licenseNumber}
             editable={false}
           />
         </View>
@@ -109,7 +109,7 @@ const CaseDetails = ({ route }) => {
           <Text style={styles.label}>Vehicle Model</Text>
           <TextInput
             style={styles.input}
-            value={caseDetails.Vehicle_model}
+            value={caseDetails.vehicleModel}
             editable={false}
           />
         </View>

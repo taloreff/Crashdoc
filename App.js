@@ -12,6 +12,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import DamageassessmentScreen from "./screens/DamageassessmentScreen";
 import MyCases from "./screens/MyCases";
 import CaseDetails from "./screens/CaseDetails";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 const Stack = createStackNavigator();
 
@@ -50,6 +51,11 @@ export default function App() {
           <Stack.Screen
             name="Sign Up"
             component={SignUpScreen}
+            options={{ headerTitle: "" }}
+          />
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
             options={{ headerTitle: "" }}
           />
           <Stack.Screen

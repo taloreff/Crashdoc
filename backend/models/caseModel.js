@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const caseSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    ID_user: { type: String, required: true },
-    Phone_number: { type: String, required: true },
-    Vehicle_number: { type: String, required: true },
-    License_number: { type: String, required: true },
-    Vehicle_model: { type: String, required: true },
+    userId: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    vehicleNumber: { type: String, required: true },
+    licenseNumber: { type: String, required: true },
+    vehicleModel: { type: String, required: true },
     documents: { type: Array, default: [] },
     damagePhotos: { type: Array, default: [] },
   },

@@ -5,11 +5,11 @@ import { uploadService } from "./upload.service.js";
 export const createCaseService = {
   handleCasePress: async (data) => {
     const {
-      ID_user,
-      Phone_number,
-      Vehicle_number,
-      License_number,
-      Vehicle_model,
+      userId,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
       documents,
       damagePhotos,
     } = data;
@@ -21,11 +21,11 @@ export const createCaseService = {
       const postResponse = await client.post(
         "/case",
         {
-          ID_user,
-          Phone_number,
-          Vehicle_number,
-          License_number,
-          Vehicle_model,
+          userId,
+          phoneNumber,
+          vehicleNumber,
+          licenseNumber,
+          vehicleModel,
           documents,
           damagePhotos,
         },
@@ -54,38 +54,3 @@ export const createCaseService = {
     }
   },
 };
-
-// handleLocationSelect: async (
-//   details,
-//   setLocation,
-//   isImageUploaded,
-//   setImage
-// ) => {
-//   try {
-//     setLocation(details.description);
-//     const placeId = details.place_id;
-//     const response = await fetch(
-//       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry&key=AIzaSyBtoaDHY9OmHFBh9oIBmzADt_R6wR1uC2Q`
-//     );
-//     const data = await response.json();
-//     const { lat, lng } = data.result.geometry.location;
-//     const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&size=600x300&zoom=15&markers=color:red%7C${lat},${lng}&key=AIzaSyBtoaDHY9OmHFBh9oIBmzADt_R6wR1uC2Q`;
-//     const base64Img = `data:image/jpg;base64,${await fetch(mapUrl)
-//       .then((response) => response.blob())
-//       .then(
-//         (blob) =>
-//           new Promise((resolve, reject) => {
-//             const reader = new FileReader();
-//             reader.onloadend = () => resolve(reader.result);
-//             reader.onerror = reject;
-//             reader.readAsDataURL(blob);
-//           })
-//       )}`;
-//     const imgData = await uploadService.uploadImg(base64Img);
-//     if (!isImageUploaded) {
-//       setImage({ imgUrl: imgData.secure_url });
-//     }
-//   } catch (error) {
-//     console.error("Error fetching location data:", error);
-//   }
-// },

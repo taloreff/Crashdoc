@@ -70,7 +70,7 @@ const MyCases = () => {
           </View>
           <View style={styles.caseHeader}>
             <MaterialCommunityIcons name="car" size={18} color="#666" />
-            <Text style={styles.caseVehicleNumber}>{item.Vehicle_number}</Text>
+            <Text style={styles.caseVehicleNumber}>{item.vehicleNumber}</Text>
           </View>
           {item.damagePhotos && item.damagePhotos.length > 0 && (
             <Image

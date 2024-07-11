@@ -18,11 +18,11 @@ import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 
 const CreateCase = ({ navigation }) => {
-  const [ID_user, setID_user] = useState("");
-  const [Phone_number, setPhone_number] = useState("");
-  const [Vehicle_number, setVehicle_number] = useState("");
-  const [License_number, setLicense_number] = useState("");
-  const [Vehicle_model, setVehicle_model] = useState("");
+  const [userId, setuserId] = useState("");
+  const [phoneNumber, setphoneNumber] = useState("");
+  const [vehicleNumber, setvehicleNumber] = useState("");
+  const [licenseNumber, setlicenseNumber] = useState("");
+  const [vehicleModel, setvehicleModel] = useState("");
   const [documents, setDocuments] = useState({});
   const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
 
@@ -119,11 +119,11 @@ const CreateCase = ({ navigation }) => {
 
   const navigateToDamageAssessment = () => {
     navigation.navigate("Damage assessment", {
-      ID_user,
-      Phone_number,
-      Vehicle_number,
-      License_number,
-      Vehicle_model,
+      userId,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
       documents,
     });
   };
@@ -144,40 +144,40 @@ const CreateCase = ({ navigation }) => {
           <Text>ID</Text>
           <TextInput
             style={styles.input}
-            value={ID_user}
-            onChangeText={setID_user}
+            value={userId}
+            onChangeText={setuserId}
             keyboardType="numeric"
           />
 
           <Text>Phone number</Text>
           <TextInput
             style={styles.input}
-            value={Phone_number}
-            onChangeText={setPhone_number}
+            value={phoneNumber}
+            onChangeText={setphoneNumber}
             keyboardType="numeric"
           />
 
           <Text>Vehicle number</Text>
           <TextInput
             style={styles.input}
-            value={Vehicle_number}
-            onChangeText={setVehicle_number}
+            value={vehicleNumber}
+            onChangeText={setvehicleNumber}
             keyboardType="numeric"
           />
 
           <Text>License number</Text>
           <TextInput
             style={styles.input}
-            value={License_number}
-            onChangeText={setLicense_number}
+            value={licenseNumber}
+            onChangeText={setlicenseNumber}
             keyboardType="numeric"
           />
 
           <Text>Vehicle model</Text>
           <TextInput
             style={styles.input}
-            value={Vehicle_model}
-            onChangeText={setVehicle_model}
+            value={vehicleModel}
+            onChangeText={setvehicleModel}
           />
 
           <View style={styles.documentContainer}>
@@ -235,21 +235,21 @@ const CreateCase = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.submitButton,
-              !ID_user ||
-                !Phone_number ||
-                !Vehicle_number ||
-                !License_number ||
-                !Vehicle_model
+              !userId ||
+                !phoneNumber ||
+                !vehicleNumber ||
+                !licenseNumber ||
+                !vehicleModel
                 ? styles.disabledButton
                 : null,
             ]}
             onPress={navigateToDamageAssessment}
             disabled={
-              !ID_user ||
-              !Phone_number ||
-              !Vehicle_number ||
-              !License_number ||
-              !Vehicle_model
+              !userId ||
+              !phoneNumber ||
+              !vehicleNumber ||
+              !licenseNumber ||
+              !vehicleModel
             }
           >
             <Text style={styles.submitButtonText}>UPLOAD YOUR VEHICLE</Text>

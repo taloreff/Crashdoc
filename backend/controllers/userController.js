@@ -98,12 +98,12 @@ async function updateUser(req, res) {
     console.log("req.body", req.body);
     console.log("req.params", req.params);
     const { userId } = req.params;
-    const { username, image, email, cases } = req.body;
+    const { username, image, email, cases, onboardingInfo } = req.body;
 
     // Update user profile in the database
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
-      { username, email, image, cases },
+      { username, email, image, cases, onboardingInfo },
       { new: true }
     );
 
