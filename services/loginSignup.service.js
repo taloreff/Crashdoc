@@ -19,6 +19,7 @@ const guestLogin = async () => {
     console.log("response", response.data)
     const { token, user } = response.data;
     await AsyncStorage.setItem("token", token);
+    await AsyncStorage.setItem("guestId", user._id);
     return { token, user };
   } catch (error) {
     throw error;

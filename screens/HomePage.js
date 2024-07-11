@@ -37,7 +37,13 @@ const HomePage = ({ navigation }) => {
   }, []);
 
   const goToCaseScreen = () => {
-    navigation.navigate("Create Case");
+    if (loggedInUserID) {
+      console.log("USER")
+      navigation.navigate("Create Case", { userData: { userId: loggedInUserID } });
+    } else {
+      console.log("GUEST")
+      navigation.navigate("Guest Onboarding");
+    }
   };
 
   const fetchLoggedInUserProfilePic = async () => {
@@ -124,9 +130,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 80,
     color: "#fff",
-    lineHeight: 80, // Ensure the line height matches the font size
+    lineHeight: 80,
     textAlign: "center",
-    textAlignVertical: "center", // For Android vertical alignment
+    textAlignVertical: "center",
   },
   tapBtnText: {
     fontSize: 16,

@@ -13,6 +13,7 @@ import DamageassessmentScreen from "./screens/DamageassessmentScreen";
 import MyCases from "./screens/MyCases";
 import CaseDetails from "./screens/CaseDetails";
 import OnboardingScreen from "./screens/OnboardingScreen";
+import GuestScreen from "./screens/GuestScreen";
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,11 @@ export default function App() {
           <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
+            options={{ headerTitle: "" }}
+          />
+          <Stack.Screen
+            name="Guest Onboarding"
+            component={GuestScreen}
             options={{ headerTitle: "" }}
           />
           <Stack.Screen

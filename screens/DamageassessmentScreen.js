@@ -32,19 +32,46 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     licenseNumber,
     vehicleModel,
     documents,
+    userId,
+    guestPhoneNumber,
+    guestVehicleNumber,
+    guestLicenseNumber,
+    guestVehicleModel,
+    guestDocuments,
   } = route.params;
+
+  const isGuestUser = !!userId;
 
   const handleCaseSubmit = async () => {
     try {
-      const data = {
-        thirdPartyId,
-        phoneNumber,
-        vehicleNumber,
-        licenseNumber,
-        vehicleModel,
-        documents,
-        damagePhotos,
-      };
+      let data;
+      if (isGuestUser) {
+        data = {
+          thirdPartyId,
+          phoneNumber,
+          vehicleNumber,
+          licenseNumber,
+          vehicleModel,
+          documents,
+          damagePhotos,
+          userId,
+          guestPhoneNumber,
+          guestVehicleNumber,
+          guestLicenseNumber,
+          guestVehicleModel,
+          guestDocuments,
+        };
+      } else {
+        data = {
+          thirdPartyId,
+          phoneNumber,
+          vehicleNumber,
+          licenseNumber,
+          vehicleModel,
+          documents,
+          damagePhotos,
+        };
+      }
 
       await createCaseService.handleCasePress(data);
       navigation.navigate("Home Page");

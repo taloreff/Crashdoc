@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 
-const CreateCase = ({ navigation }) => {
+const CreateCase = ({ route, navigation }) => {
   const [thirdPartyId, setThirdPartyId] = useState("");
   const [phoneNumber, setphoneNumber] = useState("");
   const [vehicleNumber, setvehicleNumber] = useState("");
@@ -25,6 +25,18 @@ const CreateCase = ({ navigation }) => {
   const [vehicleModel, setvehicleModel] = useState("");
   const [documents, setDocuments] = useState({});
   const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
+
+
+  const {
+    userId,
+    guestPhoneNumber,
+    guestVehicleNumber,
+    guestLicenseNumber,
+    guestVehicleModel,
+    guestDocuments,
+  } = route.params.userData;
+
+
 
   const documentTypeMapping = {
     "DRIVER LICENSE": "driversLicense",
@@ -118,14 +130,28 @@ const CreateCase = ({ navigation }) => {
   };
 
   const navigateToDamageAssessment = () => {
-    navigation.navigate("Damage assessment", {
+    const commonData = {
       thirdPartyId,
       phoneNumber,
       vehicleNumber,
       licenseNumber,
       vehicleModel,
       documents,
-    });
+    };
+
+    if (!route.params.userData) {
+      navigation.navigate("Damage assessment", commonData);
+    } else {
+      navigation.navigate("Damage assessment", {
+        ...commonData,
+        userId,
+        guestPhoneNumber,
+        guestVehicleNumber,
+        guestLicenseNumber,
+        guestVehicleModel,
+        guestDocuments,
+      });
+    }
   };
 
   return (
@@ -285,14 +311,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 0, 0, 0.2)",
     padding: 12,
     marginTop: 6,
-    marginBottom: 16,
-  },
-  errorInput: {
-    borderColor: "#e23680",
-  },
-  errorText: {
-    color: "#e23680",
-    fontSize: 12,
     marginBottom: 16,
   },
   documentContainer: {

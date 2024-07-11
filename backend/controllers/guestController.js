@@ -54,8 +54,27 @@ const getGuestById = async (req, res) => {
     }
 };
 
+const updateGuestById = async (req, res) => {
+    try {
+        const guest = await Guest.findById(req.params.id);
+        if (!guest) {
+            return res.status(404).json({ error: 'Guest not found' });
+        }
+
+        const { cases } = req.body;
+        guest.cases = cases;
+
+        await guest.save();
+        res.json(guest);
+    } catch (error) {
+        console.error('Error updating guest:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
 module.exports = {
     createGuest,
     createGuestCase,
     getGuestById,
+    updateGuestById,
 };
