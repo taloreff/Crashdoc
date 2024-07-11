@@ -5,7 +5,7 @@ import { uploadService } from "./upload.service.js";
 export const createCaseService = {
   handleCasePress: async (data) => {
     const {
-      userId,
+      thirdPartyId,
       phoneNumber,
       vehicleNumber,
       licenseNumber,
@@ -18,10 +18,20 @@ export const createCaseService = {
       const currentLoggedInUserID = await AsyncStorage.getItem(
         "loggedInUserID"
       );
+
+      const { data: userData } = await client.get("/user/" + currentLoggedInUserID, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("userData", userData);
+
       const postResponse = await client.post(
         "/case",
         {
-          userId,
+          userInfo: userData.onboardingInfo,
+          thirdPartyId,
           phoneNumber,
           vehicleNumber,
           licenseNumber,

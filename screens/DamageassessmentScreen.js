@@ -26,7 +26,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
   const [assessmentResult, setAssessmentResult] = useState(null);
 
   const {
-    userId,
+    thirdPartyId,
     phoneNumber,
     vehicleNumber,
     licenseNumber,
@@ -37,7 +37,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
   const handleCaseSubmit = async () => {
     try {
       const data = {
-        userId,
+        thirdPartyId,
         phoneNumber,
         vehicleNumber,
         licenseNumber,

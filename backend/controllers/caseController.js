@@ -5,7 +5,8 @@ const { redis } = require("../utils/redisClient.js");
 async function createCase(req, res) {
   try {
     const {
-      userId,
+      userInfo,
+      thirdPartyId,
       phoneNumber,
       vehicleNumber,
       licenseNumber,
@@ -19,8 +20,8 @@ async function createCase(req, res) {
     const user_Id = decodedToken.user.id;
 
     const newCase = new caseModel({
-      user: userId,
-      userId: user_Id,
+      userInfo,
+      thirdPartyId,
       phoneNumber,
       vehicleNumber,
       licenseNumber,

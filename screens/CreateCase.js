@@ -18,7 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 
 const CreateCase = ({ navigation }) => {
-  const [userId, setuserId] = useState("");
+  const [thirdPartyId, setThirdPartyId] = useState("");
   const [phoneNumber, setphoneNumber] = useState("");
   const [vehicleNumber, setvehicleNumber] = useState("");
   const [licenseNumber, setlicenseNumber] = useState("");
@@ -119,7 +119,7 @@ const CreateCase = ({ navigation }) => {
 
   const navigateToDamageAssessment = () => {
     navigation.navigate("Damage assessment", {
-      userId,
+      thirdPartyId,
       phoneNumber,
       vehicleNumber,
       licenseNumber,
@@ -144,8 +144,8 @@ const CreateCase = ({ navigation }) => {
           <Text>ID</Text>
           <TextInput
             style={styles.input}
-            value={userId}
-            onChangeText={setuserId}
+            value={thirdPartyId}
+            onChangeText={setThirdPartyId}
             keyboardType="numeric"
           />
 
@@ -235,7 +235,7 @@ const CreateCase = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.submitButton,
-              !userId ||
+              !thirdPartyId ||
                 !phoneNumber ||
                 !vehicleNumber ||
                 !licenseNumber ||
@@ -245,14 +245,14 @@ const CreateCase = ({ navigation }) => {
             ]}
             onPress={navigateToDamageAssessment}
             disabled={
-              !userId ||
+              !thirdPartyId ||
               !phoneNumber ||
               !vehicleNumber ||
               !licenseNumber ||
               !vehicleModel
             }
           >
-            <Text style={styles.submitButtonText}>UPLOAD YOUR VEHICLE</Text>
+            <Text style={styles.submitButtonText}>UPLOAD THIRD PARTY VEHICLE</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
