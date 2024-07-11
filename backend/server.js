@@ -21,9 +21,9 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use(express.json({ limit: '50mb' })); // Increase the limit here
-app.use(bodyParser.json({ limit: '50mb' })); // Increase the limit here
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // Increase the limit here
+app.use(express.json({ limit: "50mb" })); // Increase the limit here
+app.use(bodyParser.json({ limit: "50mb" })); // Increase the limit here
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // Increase the limit here
 
 const corsOptions = {
   origin: "*",
@@ -33,6 +33,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Routes
+// test
 app.use("/user", userRoutes);
 app.use("/case", caseRoutes);
 
@@ -86,7 +87,9 @@ async function processImagesWithGpt(imageUrls) {
   try {
     const imagesAsBase64 = await Promise.all(
       imageUrls.map(async (imageUrl) => {
-        const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+        const response = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+        });
         return Buffer.from(response.data, "binary").toString("base64");
       })
     );
