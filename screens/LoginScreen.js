@@ -45,12 +45,12 @@ const LoginScreen = ({ navigation }) => {
   const handleGuest = async () => {
     setLoading(true);
     try {
-      const { token, user } = await loginSignupService.login(email, password);
-      console.log("Login successful:", user);
+      const user = await loginSignupService.guestLogin();
+      console.log("Guest login successful:", user);
       navigation.navigate("Home Page", { refresh: true });
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        console.warn("Login failed. Invalid email or password");
+        console.warn("Guest login failed.");
         setEmail("");
         setPassword("");
       } else {

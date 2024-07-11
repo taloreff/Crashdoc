@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes.js");
 const caseRoutes = require("./routes/caseRoutes.js");
+const guestRoutes = require("./routes/guestRoutes.js");
 require("dotenv").config();
 const cors = require("cors");
 const multer = require("multer");
@@ -36,6 +37,7 @@ app.use(cors(corsOptions));
 // test
 app.use("/user", userRoutes);
 app.use("/case", caseRoutes);
+app.use("/guest", guestRoutes);
 
 // OpenAI Configuration
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

@@ -31,9 +31,7 @@ const HomePage = ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
-      const currentLoggedInUserID = await AsyncStorage.getItem(
-        "loggedInUserID"
-      );
+      const currentLoggedInUserID = await AsyncStorage.getItem("loggedInUserID");
       setLoggedInUserID(currentLoggedInUserID);
     })();
   }, []);
@@ -43,12 +41,10 @@ const HomePage = ({ navigation }) => {
   };
 
   const fetchLoggedInUserProfilePic = async () => {
+    if (!loggedInUserID) return;
+
     try {
-      const currentLoggedInUserID = await AsyncStorage.getItem(
-        "loggedInUserID"
-      );
-      setLoggedInUserID(currentLoggedInUserID);
-      const userResponse = await client.get(`/user/${currentLoggedInUserID}`);
+      const userResponse = await client.get(`/user/${loggedInUserID}`);
       const { data } = userResponse;
       setProfilePic(data.image);
     } catch (error) {
@@ -58,7 +54,7 @@ const HomePage = ({ navigation }) => {
 
   const debouncedFetchLoggedInUserProfilePic = useCallback(
     debounce(fetchLoggedInUserProfilePic, 300),
-    []
+    [loggedInUserID]
   );
 
   const handleSOS = () => {
@@ -73,17 +69,11 @@ const HomePage = ({ navigation }) => {
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <HeaderComponent
-          loggedInUserProfilePic={profilePic}
-          navigation={navigation}
-        />
+        <HeaderComponent loggedInUserProfilePic={profilePic} navigation={navigation} />
         <View style={styles.innerContainer}>
           <View style={styles.documentButtonContainer}>
             <Text style={styles.tapBtnText}>Tap to document</Text>
-            <TouchableOpacity
-              style={styles.documentButton}
-              onPress={goToCaseScreen}
-            >
+            <TouchableOpacity style={styles.documentButton} onPress={goToCaseScreen}>
               <Text style={styles.buttonText}>+</Text>
             </TouchableOpacity>
           </View>
@@ -96,10 +86,7 @@ const HomePage = ({ navigation }) => {
                 By wearing a yellow vest, placing a caution triangle and obeying
                 traffic laws
               </Text>
-              <TouchableOpacity
-                style={styles.closeDialogButton}
-                onPress={hideDialog}
-              >
+              <TouchableOpacity style={styles.closeDialogButton} onPress={hideDialog}>
                 <Text style={styles.closeButtonText}>x</Text>
               </TouchableOpacity>
             </View>

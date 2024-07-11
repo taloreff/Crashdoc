@@ -13,6 +13,19 @@ const login = async (email, password) => {
   }
 };
 
+const guestLogin = async () => {
+  try {
+    const response = await client.post("/guest/user");
+    console.log("response", response.data)
+    const { token, user } = response.data;
+    await AsyncStorage.setItem("token", token);
+    return { token, user };
+  } catch (error) {
+    throw error;
+  }
+
+}
+
 const signup = async (username, email, password) => {
   console.log("Signing up:", username, email, password);
   try {
@@ -56,4 +69,5 @@ export default {
   signup,
   logout,
   isLoggedIn,
+  guestLogin,
 };
