@@ -21,12 +21,11 @@ import client from "../backend/api/client";
 import { uploadService } from "../services/upload.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileContext } from "../cmps/ProfileContext";
+import avatarImg from "../assets/avatar.jpg";
 
 const ProfileScreen = ({ navigation }) => {
   const [passwordIsVisible, setPasswordIsVisible] = useState(false);
-  const [profileImage, setProfileImage] = useState(
-    require("../assets/avatar.jpg")
-  );
+  const [profileImage, setProfileImage] = useState(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -142,7 +141,7 @@ const ProfileScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.profileContainer}>
             <View style={styles.profileImageContainer}>
-              <Image source={profileImage} style={styles.profileImage} />
+              <Image source={profileImage ? profileImage : avatarImg} style={styles.profileImage} />
               <TouchableOpacity
                 style={styles.editIconContainer}
                 onPress={handleEditProfileImage}
