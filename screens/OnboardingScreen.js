@@ -17,6 +17,13 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import { onboardingService } from "../services/onboarding.service";
+import {
+    validateCarNumber,
+    validateID,
+    validatePhoneNumber,
+    validateLicenseNumber,
+    validateVehicleModel
+} from "../services/validation.service";
 
 const OnboardingScreen = ({ navigation }) => {
     const [userId, setuserId] = useState("");
@@ -26,6 +33,11 @@ const OnboardingScreen = ({ navigation }) => {
     const [vehicleModel, setvehicleModel] = useState("");
     const [documents, setDocuments] = useState({});
     const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
+    const [userIdError, setUserIdError] = useState("");
+    const [phoneNumberError, setPhoneNumberError] = useState("");
+    const [vehicleNumberError, setVehicleNumberError] = useState("");
+    const [licenseNumberError, setLicenseNumberError] = useState("");
+    const [vehicleModelError, setVehicleModelError] = useState("");
 
     const documentTypeMapping = {
         "DRIVER LICENSE": "driversLicense",
@@ -118,6 +130,45 @@ const OnboardingScreen = ({ navigation }) => {
     };
 
     const handleOnboardingSubmit = async () => {
+        let valid = true;
+
+        if (!validateID(userId)) {
+            setUserIdError("Please enter a valid ID");
+            valid = false;
+        } else {
+            setUserIdError("");
+        }
+
+        if (!validatePhoneNumber(phoneNumber)) {
+            setPhoneNumberError("Please enter a valid phone number");
+            valid = false;
+        } else {
+            setPhoneNumberError("");
+        }
+
+        if (!validateCarNumber(vehicleNumber)) {
+            setVehicleNumberError("Please enter a valid vehicle number");
+            valid = false;
+        } else {
+            setVehicleNumberError("");
+        }
+
+        if (!validateLicenseNumber(licenseNumber)) {
+            setLicenseNumberError("Please enter a valid license number");
+            valid = false;
+        } else {
+            setLicenseNumberError("");
+        }
+
+        if (!validateVehicleModel(vehicleModel)) {
+            setVehicleModelError("Please enter a valid vehicle model");
+            valid = false;
+        } else {
+            setVehicleModelError("");
+        }
+
+        if (!valid) return;
+
         const data = {
             userId,
             phoneNumber,
@@ -151,42 +202,47 @@ const OnboardingScreen = ({ navigation }) => {
 
                     <Text>ID</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, userIdError ? styles.errorInput : null]}
                         value={userId}
                         onChangeText={setuserId}
                         keyboardType="numeric"
                     />
+                    {userIdError ? <Text style={styles.errorText}>{userIdError}</Text> : null}
 
                     <Text>Phone number</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, phoneNumberError ? styles.errorInput : null]}
                         value={phoneNumber}
                         onChangeText={setphoneNumber}
                         keyboardType="numeric"
                     />
+                    {phoneNumberError ? <Text style={styles.errorText}>{phoneNumberError}</Text> : null}
 
                     <Text>Vehicle number</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, vehicleNumberError ? styles.errorInput : null]}
                         value={vehicleNumber}
                         onChangeText={setvehicleNumber}
                         keyboardType="numeric"
                     />
+                    {vehicleNumberError ? <Text style={styles.errorText}>{vehicleNumberError}</Text> : null}
 
                     <Text>License number</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, licenseNumberError ? styles.errorInput : null]}
                         value={licenseNumber}
                         onChangeText={setlicenseNumber}
                         keyboardType="numeric"
                     />
+                    {licenseNumberError ? <Text style={styles.errorText}>{licenseNumberError}</Text> : null}
 
                     <Text>Vehicle model</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, vehicleModelError ? styles.errorInput : null]}
                         value={vehicleModel}
                         onChangeText={setvehicleModel}
                     />
+                    {vehicleModelError ? <Text style={styles.errorText}>{vehicleModelError}</Text> : null}
 
                     <View style={styles.documentContainer}>
                         <Swiper

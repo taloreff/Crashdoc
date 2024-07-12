@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import loginSignupService from "../services/loginSignup.service.js";
+import { validateEmail, validatePassword, validateUsername } from "../services/validation.service.js";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -23,8 +24,36 @@ const SignUpScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [passwordIsVisible, setPasswordIsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
 
   const handleSignUp = async () => {
+    let valid = true;
+
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address");
+      valid = false;
+    } else {
+      setEmailError("");
+    }
+
+    if (!validatePassword(password)) {
+      setPasswordError("Password must be at least 6 characters");
+      valid = false;
+    } else {
+      setPasswordError("");
+    }
+
+    if (!validateUsername(username)) {
+      setUsernameError("Username must be at least 3 characters");
+      valid = false;
+    } else {
+      setUsernameError("");
+    }
+
+    if (!valid) return;
+
     setLoading(true);
     console.log("Signing up:", username, email, password);
     const result = await loginSignupService.signup(username, email, password);
@@ -64,20 +93,23 @@ const SignUpScreen = ({ navigation }) => {
                 <Feather name="user" size={22} color="black" />
               </View>
               <TextInput
-                style={[styles.input, { textAlign: "left" }]}
-                placeholder="Enter your user name"
+                style={styles.input}
+                placeholder="Enter your username"
                 placeholderTextColor="#7C808D"
                 selectionColor="#3662AA"
                 onChangeText={setUsername}
                 value={username}
               />
             </View>
+            {usernameError ? (
+              <Text style={styles.errorText}>{usernameError}</Text>
+            ) : null}
             <View style={styles.inputContainer}>
               <View style={styles.icon}>
                 <Feather name="mail" size={22} color="black" />
               </View>
               <TextInput
-                style={[styles.input, { textAlign: "left" }]}
+                style={styles.input}
                 placeholder="Enter your email address"
                 keyboardType="email-address"
                 placeholderTextColor="#7C808D"
@@ -88,12 +120,15 @@ const SignUpScreen = ({ navigation }) => {
                 autoCapitalize="none"
               />
             </View>
+            {emailError ? (
+              <Text style={styles.errorText}>{emailError}</Text>
+            ) : null}
             <View style={styles.inputContainer}>
               <View style={styles.icon}>
                 <Feather name="lock" size={22} color="black" />
               </View>
               <TextInput
-                style={[styles.input, { textAlign: "left" }]}
+                style={styles.input}
                 placeholder="Enter your password"
                 placeholderTextColor="#7C808D"
                 selectionColor="#3662AA"
@@ -112,6 +147,9 @@ const SignUpScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
             </View>
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
             {loading && (
               <ActivityIndicator
                 size="large"
@@ -175,6 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     borderBottomWidth: 0,
+    textAlign: "left",
   },
   passwordVisibleButton: {
     position: "absolute",
@@ -192,6 +231,10 @@ const styles = StyleSheet.create({
   signupButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
   },
 });
 
