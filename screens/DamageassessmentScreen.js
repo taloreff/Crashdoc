@@ -1,84 +1,38 @@
-import React, { useState, useEffect } from "react";
+// DamageAssessmentScreen.js
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   ScrollView,
   Image,
-  Animated,
   Alert,
 } from "react-native";
-import axios from "axios";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
-import { createCaseService } from "../services/createCase.service";
 import client from "../backend/api/client";
-import { uploadService } from "../services/upload.service";
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState({});
   const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(new Animated.Value(0));
-  const [uploadedFirstPhoto, setUploadedFirstPhoto] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
 
   const {
-    thirdPartyId,
+    userId,
     phoneNumber,
     vehicleNumber,
     licenseNumber,
     vehicleModel,
     documents,
-    userId,
+    thirdPartyId,
     guestPhoneNumber,
     guestVehicleNumber,
     guestLicenseNumber,
     guestVehicleModel,
     guestDocuments,
   } = route.params;
-
-  const isGuestUser = !!userId;
-
-  const handleCaseSubmit = async () => {
-    try {
-      let data;
-      if (isGuestUser) {
-        data = {
-          thirdPartyId,
-          phoneNumber,
-          vehicleNumber,
-          licenseNumber,
-          vehicleModel,
-          documents,
-          damagePhotos,
-          userId,
-          guestPhoneNumber,
-          guestVehicleNumber,
-          guestLicenseNumber,
-          guestVehicleModel,
-          guestDocuments,
-        };
-      } else {
-        data = {
-          thirdPartyId,
-          phoneNumber,
-          vehicleNumber,
-          licenseNumber,
-          vehicleModel,
-          documents,
-          damagePhotos,
-        };
-      }
-
-      await createCaseService.handleCasePress(data);
-      navigation.navigate("Home Page");
-    } catch (error) {
-      console.error("Error creating case:", error);
-    }
-  };
 
   const handleAssessDamage = async () => {
     setProcessing(true);
@@ -114,28 +68,46 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         case "1":
           message = (
             <Text>
-              The assessment indicates that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>light</Text>. This typically includes minor scratches or dents that are superficial and do not affect the overall functionality of your vehicle. Based on this evaluation, it is generally not recommended to pursue a claim with your insurance company as the repair costs are likely to be relatively low and might not exceed your deductible.
+              The assessment indicates that the damage to your vehicle is{" "}
+              <Text style={{ fontWeight: "bold" }}>light</Text>. This typically
+              includes minor scratches or dents that are superficial and do not
+              affect the overall functionality of your vehicle. Based on this
+              evaluation, it is generally not recommended to pursue a claim with
+              your insurance company as the repair costs are likely to be
+              relatively low and might not exceed your deductible.
             </Text>
           );
           break;
         case "2":
           message = (
             <Text>
-              The assessment shows that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>moderate</Text>. This might involve issues such as a cracked windshield, minor body damage, or other repairs that could be more costly but are still manageable. In this case, you might want to consider contacting your insurance company to file a claim, as the repair costs could be significant enough to warrant it.
+              The assessment shows that the damage to your vehicle is{" "}
+              <Text style={{ fontWeight: "bold" }}>moderate</Text>. This might
+              involve issues such as a cracked windshield, minor body damage, or
+              other repairs that could be more costly but are still manageable.
+              In this case, you might want to consider contacting your insurance
+              company to file a claim, as the repair costs could be significant
+              enough to warrant it.
             </Text>
           );
           break;
         case "3":
           message = (
             <Text>
-              The assessment reveals that the damage to your vehicle is <Text style={{ fontWeight: 'bold' }}>severe</Text>. This could include major structural damage, extensive bodywork needed, or other significant repairs that affect the safety and usability of your vehicle. It is imperative that you contact your insurance company immediately to file a claim and begin the process of getting your vehicle repaired or replaced.
+              The assessment reveals that the damage to your vehicle is{" "}
+              <Text style={{ fontWeight: "bold" }}>severe</Text>. This could
+              include major structural damage, extensive bodywork needed, or
+              other significant repairs that affect the safety and usability of
+              your vehicle. It is imperative that you contact your insurance
+              company immediately to file a claim and begin the process of
+              getting your vehicle repaired or replaced.
             </Text>
           );
           break;
         default:
           message = (
             <Text>
-              The assessment result is <Text style={{ fontWeight: 'bold' }}>unknown</Text>. This might indicate an error in processing the images or an unexpected type of damage that could not be categorized. Please try again.
+              The assessment result is <Text style={{ fontWeight: "bold" }}>unknown</Text>. This might indicate an error in processing the images or an unexpected type of damage that could not be categorized. Please try again.
             </Text>
           );
       }
@@ -149,6 +121,24 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleContinue = () => {
+    navigation.navigate("Review Case", {
+      userId,
+      phoneNumber,
+      vehicleNumber,
+      licenseNumber,
+      vehicleModel,
+      documents,
+      damagePhotos,
+      assessmentResult,
+      thirdPartyId,
+      guestPhoneNumber,
+      guestVehicleNumber,
+      guestLicenseNumber,
+      guestVehicleModel,
+      guestDocuments,
+    });
+  };
 
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
@@ -189,10 +179,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                 ...prevPhotos,
                 [`damagePhoto${index}`]: result.assets[0].uri,
               }));
-
-              if (!uploadedFirstPhoto) {
-                setUploadedFirstPhoto(true);
-              }
             }
           },
         },
@@ -211,10 +197,6 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                 ...prevPhotos,
                 [`damagePhoto${index}`]: result.assets[0].uri,
               }));
-
-              if (!uploadedFirstPhoto) {
-                setUploadedFirstPhoto(true);
-              }
             }
           },
         },
@@ -308,12 +290,13 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
               {processing ? "Assessing..." : "Assess the Damage"}
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleCaseSubmit}
+            style={styles.continueButton}
+            onPress={handleContinue}
             disabled={processing}
           >
-            <Text style={styles.submitButtonText}>Submit Case</Text>
+            <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -411,37 +394,39 @@ const styles = StyleSheet.create({
   paginationStyle: {
     marginTop: 10,
   },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
   assessButton: {
+    marginTop: 50,
     backgroundColor: "#fff",
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
-    margin: 20,
-    marginBottom: 0,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: "#e23680",
     borderRadius: 44,
+    width: "100%",
   },
   assessButtonText: {
     color: "#e23680",
     fontSize: 16,
     fontWeight: "bold",
   },
-  submitButton: {
+  continueButton: {
     backgroundColor: "#e23680",
     paddingVertical: 18,
     paddingHorizontal: 16,
-    margin: 20,
-    marginBottom: 70,
-    borderRadius: 4,
+    borderRadius: 44,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
-    borderRadius: 44,
+    width: "100%",
   },
-  submitButtonText: {
+  continueButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
@@ -458,15 +443,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 5,
-    // height: "75%",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   assessmentResultText: {
     fontSize: 18,
     marginBottom: 10,
-    color: "rgba(0, 0, 0, 0.7)"
+    color: "rgba(0, 0, 0, 0.7)",
   },
 });
-
 
 export default DamageAssessmentScreen;

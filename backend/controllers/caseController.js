@@ -14,6 +14,7 @@ async function createCase(req, res) {
       documents,
       damagePhotos,
     } = req.body;
+    console.log("createa case req.body: ", req.body);
 
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);

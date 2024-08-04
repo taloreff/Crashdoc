@@ -50,4 +50,30 @@ export const onboardingService = {
             console.log("Error updating user onboarding info: ", error);
         }
     },
+    getOnboardingInfo: async () => {
+        try {
+            const token = await AsyncStorage.getItem("token");
+            const currentLoggedInUserID = await AsyncStorage.getItem("loggedInUserID");
+
+            if (!token || !currentLoggedInUserID) {
+                throw new Error("User not logged in.");
+            }
+
+            const response = await client.get(`/user/${currentLoggedInUserID}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const existingUser = response.data;
+            if (existingUser && existingUser.onboardingInfo) {
+                return existingUser.onboardingInfo;
+            } else {
+                throw new Error("No onboarding info found for the user.");
+            }
+        } catch (error) {
+            console.error("Error fetching onboarding info: ", error);
+            throw error;
+        }
+    },
 };

@@ -47,6 +47,7 @@ const MyCases = () => {
   }, []);
 
   const renderCase = ({ item, index }) => (
+    console.log("ITEM", item),
     <Shadow distance={5} startColor="rgba(0, 0, 0, 0.05)" offset={[0, 5]}>
       <View style={styles.caseContainer}>
         <LinearGradient
@@ -78,12 +79,15 @@ const MyCases = () => {
             <MaterialCommunityIcons name="car" size={18} color="#666" />
             <Text style={styles.caseVehicleNumber}>{item.vehicleNumber}</Text>
           </View>
-          {item.damagePhotos && item.damagePhotos.length > 0 && (
+          {item.damagePhotos && item.damagePhotos.length > 0 ? (
             <Image
               source={{ uri: item.damagePhotos[0].damagePhoto1 }}
               style={styles.caseImage}
             />
-          )}
+          ) : <Image
+            source={{ uri: item.documents[0].driversLicense }}
+            style={styles.caseImage}
+          />}
           <TouchableOpacity
             style={styles.viewDetailsButton}
             onPress={() =>

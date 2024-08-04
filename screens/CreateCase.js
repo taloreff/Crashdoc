@@ -188,7 +188,7 @@ const CreateCase = ({ route, navigation }) => {
     };
 
     if (!route.params.userData) {
-      navigation.navigate("Damage assessment", commonData);
+      navigation.navigate("Damage assessment", { ...commonData });
     } else {
       navigation.navigate("Damage assessment", {
         ...commonData,

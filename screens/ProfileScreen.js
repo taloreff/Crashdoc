@@ -42,6 +42,7 @@ const ProfileScreen = ({ navigation }) => {
   const { setProfilePic } = useContext(ProfileContext);
 
   // New State Variables for Additional Information
+  const [userId, setUserId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -96,8 +97,10 @@ const ProfileScreen = ({ navigation }) => {
       setLoggedInUserID(currentLoggedInUserID);
       const userResponse = await client.get(`/user/${currentLoggedInUserID}`);
       const { data } = userResponse;
+      console.log("Fetched logged in user:", data);
       setUsername(data.username);
       setEmail(data.email);
+      setUserId(data.onboardingInfo.userId || "");
       setPhoneNumber(data.onboardingInfo.phoneNumber || "");
       setVehicleNumber(data.onboardingInfo.vehicleNumber || "");
       setLicenseNumber(data.onboardingInfo.licenseNumber || "");
@@ -214,6 +217,7 @@ const ProfileScreen = ({ navigation }) => {
         email,
         username,
         onboardingInfo: {
+          userId,
           phoneNumber,
           vehicleNumber,
           licenseNumber,
@@ -294,7 +298,19 @@ const ProfileScreen = ({ navigation }) => {
                 />
               </View>
             </View>
-
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="info" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  selectionColor="#3662AA"
+                  value={userId}
+                  placeholder="Identification Number"
+                  disabled={true}
+                  editable={false}
+                />
+              </View>
+            </View>
             {/* Additional fields from onboarding */}
             <View style={styles.inputEditContainer}>
               <View style={styles.inputContainer}>
