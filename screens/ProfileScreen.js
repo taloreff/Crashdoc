@@ -3,9 +3,9 @@ import {
   View,
   Text,
   Image,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
@@ -15,12 +15,20 @@ import {
   Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import Swiper from "react-native-swiper";
 import * as ImagePicker from "expo-image-picker";
 import TopNavigation from "../cmps/TopNavigation";
 import client from "../backend/api/client";
 import { uploadService } from "../services/upload.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProfileContext } from "../cmps/ProfileContext";
+import {
+  validateCarNumber,
+  validateID,
+  validatePhoneNumber,
+  validateLicenseNumber,
+  validateVehicleModel,
+} from "../services/validation.service";
 import avatarImg from "../assets/avatar.jpg";
 
 const ProfileScreen = ({ navigation }) => {
@@ -32,6 +40,22 @@ const ProfileScreen = ({ navigation }) => {
   const [loggedInUserID, setLoggedInUserID] = useState(null);
   const [loading, setLoading] = useState(false);
   const { setProfilePic } = useContext(ProfileContext);
+
+  // New State Variables for Additional Information
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [vehicleModel, setVehicleModel] = useState("");
+  const [documents, setDocuments] = useState({});
+  const [errors, setErrors] = useState({});
+
+  const documentTypeMapping = {
+    "DRIVER LICENSE": "driversLicense",
+    "VEHICLE LICENSE": "vehicleLicense",
+    "INSURANCE": "insurance",
+    "REGISTRATION": "registration",
+    "ADDITIONAL DOCUMENTS": "additionalDocuments",
+  };
 
   useEffect(() => {
     fetchLoggedInUser();
@@ -74,14 +98,101 @@ const ProfileScreen = ({ navigation }) => {
       const { data } = userResponse;
       setUsername(data.username);
       setEmail(data.email);
+      setPhoneNumber(data.onboardingInfo.phoneNumber || "");
+      setVehicleNumber(data.onboardingInfo.vehicleNumber || "");
+      setLicenseNumber(data.onboardingInfo.licenseNumber || "");
+      setVehicleModel(data.onboardingInfo.vehicleModel || "");
       setProfileImage({ uri: data.image || require("../assets/avatar.jpg") });
       setProfilePic(data.image || require("../assets/avatar.jpg"));
+      setDocuments(data.onboardingInfo.documents || {});
     } catch (error) {
       console.error("Error fetching logged in user:", error);
     }
   };
 
+  const handleDocumentUpload = async (docType) => {
+    const hasPermissions = await requestPermissions();
+
+    if (!hasPermissions) {
+      Alert.alert(
+        "Permission required",
+        "Please allow camera and media library permissions in your settings."
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Upload Document",
+      "Choose an option",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              const stateKey = documentTypeMapping[docType];
+              setDocuments((prevDocuments) => ({
+                ...prevDocuments,
+                [stateKey]: result.assets[0].uri,
+              }));
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.All,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              const stateKey = documentTypeMapping[docType];
+              setDocuments((prevDocuments) => ({
+                ...prevDocuments,
+                [stateKey]: result.assets[0].uri,
+              }));
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const requestPermissions = async () => {
+    const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+    const mediaLibraryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    return (
+      cameraStatus.status === "granted" &&
+      mediaLibraryStatus.status === "granted"
+    );
+  };
+
+  const validateFields = () => {
+    const newErrors = {};
+    if (!validatePhoneNumber(phoneNumber)) newErrors.phoneNumber = "Please enter a valid phone number";
+    if (!validateCarNumber(vehicleNumber)) newErrors.vehicleNumber = "Please enter a valid vehicle number";
+    if (!validateLicenseNumber(licenseNumber)) newErrors.licenseNumber = "Please enter a valid license number";
+    if (!validateVehicleModel(vehicleModel)) newErrors.vehicleModel = "Please enter a valid vehicle model";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleUpdate = async () => {
+    if (!validateFields()) return;
+
     setLoading(true);
     try {
       const currentLoggedInUserID = await AsyncStorage.getItem(
@@ -102,23 +213,32 @@ const ProfileScreen = ({ navigation }) => {
       const updatedUser = {
         email,
         username,
+        onboardingInfo: {
+          phoneNumber,
+          vehicleNumber,
+          licenseNumber,
+          vehicleModel,
+          documents
+        },
         image: profileImage.uri || null,
       };
 
-      const base64Img = `data:image/jpg;base64,${await fetch(profileImage.uri)
-        .then((response) => response.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        )}`;
-      const imgData = await uploadService.uploadImg(base64Img);
-
-      updatedUser.image = imgData.secure_url;
+      // Upload profile image if changed
+      if (profileImage.uri !== data.image) {
+        const base64Img = `data:image/jpg;base64,${await fetch(profileImage.uri)
+          .then((response) => response.blob())
+          .then(
+            (blob) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              })
+          )}`;
+        const imgData = await uploadService.uploadImg(base64Img);
+        updatedUser.image = imgData.secure_url;
+      }
 
       await client.put(`/user/${currentLoggedInUserID}`, updatedUser);
 
@@ -174,27 +294,125 @@ const ProfileScreen = ({ navigation }) => {
                 />
               </View>
             </View>
+
+            {/* Additional fields from onboarding */}
             <View style={styles.inputEditContainer}>
               <View style={styles.inputContainer}>
-                <Feather name="lock" size={22} style={styles.icon} />
+                <Feather name="phone" size={22} style={styles.icon} />
                 <TextInput
-                  style={[styles.input, styles.uneditableInput]}
-                  placeholder="●●●●●●●●"
-                  editable={false}
-                  placeholderTextColor="#7C808D"
+                  style={styles.input}
                   selectionColor="#3662AA"
+                  onChangeText={setPhoneNumber}
+                  value={phoneNumber}
+                  placeholder="Phone Number"
+                  keyboardType="numeric"
                 />
-                <TouchableOpacity
-                  style={styles.passwordVisibleButton}
-                  onPress={() => setPasswordIsVisible(!passwordIsVisible)}
-                >
-                  <Feather
-                    name={passwordIsVisible ? "eye" : "eye-off"}
-                    size={20}
-                    style={styles.icon}
-                  />
-                </TouchableOpacity>
               </View>
+              {errors.phoneNumber && (
+                <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+              )}
+            </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="hash" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  selectionColor="#3662AA"
+                  onChangeText={setVehicleNumber}
+                  value={vehicleNumber}
+                  placeholder="Vehicle Number"
+                  keyboardType="numeric"
+                />
+              </View>
+              {errors.vehicleNumber && (
+                <Text style={styles.errorText}>{errors.vehicleNumber}</Text>
+              )}
+            </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="key" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  selectionColor="#3662AA"
+                  onChangeText={setLicenseNumber}
+                  value={licenseNumber}
+                  placeholder="License Number"
+                  keyboardType="numeric"
+                />
+              </View>
+              {errors.licenseNumber && (
+                <Text style={styles.errorText}>{errors.licenseNumber}</Text>
+              )}
+            </View>
+            <View style={styles.inputEditContainer}>
+              <View style={styles.inputContainer}>
+                <Feather name="truck" size={22} style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  selectionColor="#3662AA"
+                  onChangeText={setVehicleModel}
+                  value={vehicleModel}
+                  placeholder="Vehicle Model"
+                />
+              </View>
+              {errors.vehicleModel && (
+                <Text style={styles.errorText}>{errors.vehicleModel}</Text>
+              )}
+            </View>
+
+            {/* Document Uploads */}
+            <View style={styles.documentContainer}>
+              <Swiper
+                style={styles.wrapper}
+                showsButtons={true}
+                loop={false}
+                height={130}
+                containerStyle={styles.swiperContainer}
+                dotStyle={styles.dotStyle}
+                activeDotStyle={styles.activeDotStyle}
+                nextButton={<Text style={styles.swiperButton}>›</Text>}
+                prevButton={<Text style={styles.swiperButton}>‹</Text>}
+                paginationStyle={styles.paginationStyle}
+                horizontal={true}
+              >
+                {[
+                  ["DRIVER LICENSE", "VEHICLE LICENSE"],
+                  ["INSURANCE", "REGISTRATION"],
+                  ["ADDITIONAL DOCUMENTS"],
+                ].map((docPair, index) => (
+                  <View style={styles.slide} key={`pair-${index}`}>
+                    {docPair.map((docType) => (
+                      <TouchableOpacity
+                        style={styles.documentButton}
+                        key={docType}
+                        onPress={() => handleDocumentUpload(docType)}
+                      >
+                        {documents[documentTypeMapping[docType]] ? (
+                          <Image
+                            source={{
+                              uri: documents[documentTypeMapping[docType]],
+                            }}
+                            style={styles.documentImage}
+                          />
+                        ) : (
+                          <>
+                            <View style={styles.uploadIconContainer}>
+                              <Feather
+                                name="upload"
+                                size={18}
+                                style={styles.uploadIcon}
+                              />
+                            </View>
+                            <Text style={styles.documentButtonText}>
+                              {docType}
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ))}
+              </Swiper>
             </View>
           </View>
           <TouchableOpacity
@@ -264,7 +482,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 10,
-    backgroundColor: "#F3F3F6FF",
+    backgroundColor: "#fff",
   },
   icon: {
     marginRight: 15,
@@ -273,9 +491,88 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
   },
+  errorText: {
+    color: "#e23680",
+    fontSize: 12,
+    marginTop: 4,
+  },
   passwordVisibleButton: {
     position: "absolute",
     right: 10,
+  },
+  documentContainer: {
+    marginVertical: 20,
+    width: "100%",
+  },
+  swiperContainer: {
+    height: 180,
+    width: "100%",
+  },
+  slide: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+  documentButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#F3F3F6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    position: "relative",
+  },
+  documentButtonText: {
+    color: "rgba(0, 0, 0, 0.6)",
+    fontSize: 12,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 5,
+  },
+  uploadIconContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#e23680",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    top: 2,
+    right: 2,
+  },
+  uploadIcon: {
+    color: "#fff",
+  },
+  documentImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  dotStyle: {
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
+  },
+  activeDotStyle: {
+    backgroundColor: "#e23680",
+    bottom: -10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 3,
+  },
+  swiperButton: {
+    color: "#e23680",
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+  paginationStyle: {
+    marginTop: 10,
   },
   updateButton: {
     backgroundColor: "#e23680",

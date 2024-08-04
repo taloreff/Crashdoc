@@ -7,6 +7,7 @@ const login = async (email, password) => {
     const { token, user } = response.data;
     await AsyncStorage.setItem("token", token);
     await AsyncStorage.setItem("loggedInUserID", user._id);
+    console.log("logged in as user")
     return { token, user };
   } catch (error) {
     throw error;
@@ -16,10 +17,13 @@ const login = async (email, password) => {
 const guestLogin = async () => {
   try {
     const response = await client.post("/guest/user");
-    console.log("response", response.data)
+    console.log("logged in as guest")
     const { token, user } = response.data;
+    console.log("guest user", user._id)
     await AsyncStorage.setItem("token", token);
     await AsyncStorage.setItem("guestId", user._id);
+    const guestId = await AsyncStorage.getItem("guestId");
+    console.log("guestId", guestId);
     return { token, user };
   } catch (error) {
     throw error;
@@ -50,6 +54,7 @@ const logout = async () => {
   try {
     await AsyncStorage.removeItem("token");
     await AsyncStorage.removeItem("loggedInUserID");
+    await AsyncStorage.removeItem("guestId");
   } catch (error) {
     throw error;
   }
