@@ -99,7 +99,7 @@ const ReviewCase = ({ route, navigation }) => {
 
             const pdfBytes = await pdfDoc.save();
 
-            const pdfBase64 = pdfBytes.toString('base64'); // Convert to base64
+            const pdfBase64 = pdfBytes.toString('base64');
 
             const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
 
@@ -201,7 +201,11 @@ const ReviewCase = ({ route, navigation }) => {
 
             {renderSwiperContent(
                 Object.values(userOnboardingInfo.documents),
-                "Documents"
+                "User Documents"
+            )}
+            {renderSwiperContent(
+                Object.values(documents),
+                "User Documents"
             )}
             {renderSwiperContent(Object.values(damagePhotos), "Damage Photos")}
 

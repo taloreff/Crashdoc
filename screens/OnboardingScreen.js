@@ -17,6 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import { onboardingService } from "../services/onboarding.service";
+import { uploadService } from "../services/upload.service";  // Import the upload service
 import {
     validateCarNumber,
     validateID,
@@ -85,15 +86,8 @@ const OnboardingScreen = ({ navigation }) => {
                         });
 
                         if (!result.canceled) {
-                            const stateKey = documentTypeMapping[docType];
-                            setDocuments((prevDocuments) => ({
-                                ...prevDocuments,
-                                [stateKey]: result.assets[0].uri,
-                            }));
-
-                            if (!uploadedFirstPhoto) {
-                                setUploadedFirstPhoto(true);
-                            }
+                            const imageUri = result.assets[0].uri;
+                            await uploadAndSaveImage(docType, imageUri);
                         }
                     },
                 },
@@ -108,15 +102,8 @@ const OnboardingScreen = ({ navigation }) => {
                         });
 
                         if (!result.canceled) {
-                            const stateKey = documentTypeMapping[docType];
-                            setDocuments((prevDocuments) => ({
-                                ...prevDocuments,
-                                [stateKey]: result.assets[0].uri,
-                            }));
-
-                            if (!uploadedFirstPhoto) {
-                                setUploadedFirstPhoto(true);
-                            }
+                            const imageUri = result.assets[0].uri;
+                            await uploadAndSaveImage(docType, imageUri);
                         }
                     },
                 },
@@ -127,6 +114,37 @@ const OnboardingScreen = ({ navigation }) => {
             ],
             { cancelable: true }
         );
+    };
+
+    const uploadAndSaveImage = async (docType, imageUri) => {
+        try {
+            // Fetch the image and convert to base64
+            const base64Img = await fetch(imageUri)
+                .then(response => response.blob())
+                .then(blob => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                }));
+
+            // Upload to Cloudinary
+            const uploadedImage = await uploadService.uploadImg(base64Img);
+
+            // Save the Cloudinary URL to documents
+            const stateKey = documentTypeMapping[docType];
+            setDocuments((prevDocuments) => ({
+                ...prevDocuments,
+                [stateKey]: uploadedImage.secure_url,  // Store Cloudinary URL
+            }));
+
+            if (!uploadedFirstPhoto) {
+                setUploadedFirstPhoto(true);
+            }
+        } catch (error) {
+            Alert.alert("Upload Error", "Failed to upload the image. Please try again.");
+            console.log("Upload Error:", error);
+        }
     };
 
     const handleOnboardingSubmit = async () => {

@@ -1,4 +1,3 @@
-// DamageAssessmentScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -13,6 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import client from "../backend/api/client";
+import { uploadService } from "../services/upload.service";  // Import the upload service
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState({});
@@ -175,10 +175,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             });
 
             if (!result.canceled) {
-              setDamagePhotos((prevPhotos) => ({
-                ...prevPhotos,
-                [`damagePhoto${index}`]: result.assets[0].uri,
-              }));
+              const imageUri = result.assets[0].uri;
+              await uploadAndSaveImage(index, imageUri);
             }
           },
         },
@@ -193,10 +191,8 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             });
 
             if (!result.canceled) {
-              setDamagePhotos((prevPhotos) => ({
-                ...prevPhotos,
-                [`damagePhoto${index}`]: result.assets[0].uri,
-              }));
+              const imageUri = result.assets[0].uri;
+              await uploadAndSaveImage(index, imageUri);
             }
           },
         },
@@ -207,6 +203,28 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
       ],
       { cancelable: true }
     );
+  };
+
+  const uploadAndSaveImage = async (index, imageUri) => {
+    try {
+      const base64Img = await fetch(imageUri)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }));
+
+      const uploadedImage = await uploadService.uploadImg(base64Img);
+      setDamagePhotos((prevPhotos) => ({
+        ...prevPhotos,
+        [`damagePhoto${index}`]: uploadedImage.secure_url,
+      }));
+    } catch (error) {
+      Alert.alert("Upload Error", "Failed to upload the image. Please try again.");
+      console.log("Upload Error:", error);
+    }
   };
 
   return (
