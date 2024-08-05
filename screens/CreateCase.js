@@ -202,10 +202,8 @@ const CreateCase = ({ route, navigation }) => {
     };
 
     if (!route.params.userData) {
-      console.log("11")
       navigation.navigate("Damage assessment", { ...commonData });
     } else {
-      console.log("22")
       navigation.navigate("Damage assessment", {
         ...commonData,
         userId,

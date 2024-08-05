@@ -16,6 +16,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { onboardingService } from "../services/onboarding.service";
 import { createCaseService } from "../services/createCase.service";
+import { Buffer } from 'buffer';
 import client from "../backend/api/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -37,11 +38,10 @@ const ReviewCase = ({ route, navigation }) => {
         guestVehicleModel,
         guestDocuments,
         damagePhotos,
-        assessmentResult, // Consider changing this if it's a React element
+        assessmentResult,
     } = route.params;
 
     useEffect(() => {
-        console.log("guestPhoneNumber", guestPhoneNumber);
         if (!guestPhoneNumber) fetchOnboardingInfo();
         else {
             setLoading(false);
@@ -90,24 +90,9 @@ const ReviewCase = ({ route, navigation }) => {
                     damagePhotos,
                 };
             }
-            console.log("SUBMITTING GUEST CASE", data);
 
             await createCaseService.handleCasePress(data);
 
-            // const guestId = await AsyncStorage.getItem("guestId");
-
-            // const { data: guestData } = await client.get(`/guest/user/${guestId}`);
-            // console.log("GUEST DATA", guestData);
-
-            // const updatedGuestData = {
-            //     ...guestData,
-            //     userInfo: {
-            //         userId, phoneNumber: guestPhoneNumber, vehicleNumber: guestVehicleNumber, licenseNumber: guestLicenseNumber, vehicleModel: guestVehicleModel
-            //     },
-            // };
-            // console.log("UPDATED GUEST DATA", updatedGuestData.userInfo);
-            // await client.put(`/guest/user/${userId}`, updatedGuestData);
-            // await client.put(`/case/${guestData.cases._id}`, updatedGuestData);
             navigation.navigate("Home Page");
         } catch (error) {
             console.error("Error creating case:", error);
@@ -119,21 +104,89 @@ const ReviewCase = ({ route, navigation }) => {
         try {
             // Create a new PDF document
             const pdfDoc = await PDFDocument.create();
-            const page = pdfDoc.addPage([600, 400]);
+            const page = pdfDoc.addPage([600, 700]); // Increased height for more content
 
-            page.drawText('User Information:', { x: 50, y: 350, size: 20 });
-            page.drawText(`User ID: ${userOnboardingInfo.userId}`, { x: 50, y: 330, size: 15 });
-            page.drawText(`Phone Number: ${userOnboardingInfo.phoneNumber}`, { x: 50, y: 310, size: 15 });
-            page.drawText(`Vehicle Number: ${userOnboardingInfo.vehicleNumber}`, { x: 50, y: 290, size: 15 });
-            page.drawText(`License Number: ${userOnboardingInfo.licenseNumber}`, { x: 50, y: 270, size: 15 });
-            page.drawText(`Vehicle Model: ${userOnboardingInfo.vehicleModel}`, { x: 50, y: 250, size: 15 });
+            // Determine whether the user is a guest
+            const isGuest = !!guestPhoneNumber;
 
+            // User Information
+            page.drawText('User Information:', { x: 50, y: 650, size: 20 });
+
+            console.log("all:", userOnboardingInfo, thirdPartyId, phoneNumber, vehicleNumber, licenseNumber, vehicleModel, documents, damagePhotos);
+
+            if (isGuest) {
+                page.drawText(`User ID: ${userId}`, { x: 50, y: 630, size: 15 });
+                page.drawText(`Phone Number: ${guestPhoneNumber}`, { x: 50, y: 610, size: 15 });
+                page.drawText(`Vehicle Number: ${guestVehicleNumber}`, { x: 50, y: 590, size: 15 });
+                page.drawText(`License Number: ${guestLicenseNumber}`, { x: 50, y: 570, size: 15 });
+                page.drawText(`Vehicle Model: ${guestVehicleModel}`, { x: 50, y: 550, size: 15 });
+                page.drawText('Documents:', { x: 50, y: 530, size: 15 });
+
+                if (guestDocuments && typeof guestDocuments === 'object') {
+                    Object.entries(guestDocuments).forEach(([key, value], index) => {
+                        if (value) {
+                            page.drawText(`- ${key}: ${value}`, { x: 60, y: 510 - index * 20, size: 12 });
+                        }
+                    });
+                }
+            } else {
+                page.drawText(`User ID: ${userOnboardingInfo.userId}`, { x: 50, y: 630, size: 15 });
+                page.drawText(`Phone Number: ${userOnboardingInfo.phoneNumber}`, { x: 50, y: 610, size: 15 });
+                page.drawText(`Vehicle Number: ${userOnboardingInfo.vehicleNumber}`, { x: 50, y: 590, size: 15 });
+                page.drawText(`License Number: ${userOnboardingInfo.licenseNumber}`, { x: 50, y: 570, size: 15 });
+                page.drawText(`Vehicle Model: ${userOnboardingInfo.vehicleModel}`, { x: 50, y: 550, size: 15 });
+                page.drawText('Documents:', { x: 50, y: 530, size: 15 });
+
+                if (userOnboardingInfo.documents && typeof userOnboardingInfo.documents === 'object') {
+                    Object.entries(userOnboardingInfo.documents).forEach(([key, value], index) => {
+                        console.log("key:", key, "value:", value);
+                        if (value && key !== "_id") {
+                            page.drawText(`- ${key}: ${value}`, { x: 60, y: 510 - index * 20, size: 12 });
+                        }
+                    });
+                }
+            }
+
+            // Third Party Information
+            const thirdPartyYStart = isGuest ? 310 : 430 - (userOnboardingInfo.documents ? Object.keys(userOnboardingInfo.documents).length : 0) * 20;
+            page.drawText('Third Party Information:', { x: 50, y: thirdPartyYStart, size: 20 });
+            page.drawText(`Third Party ID: ${thirdPartyId}`, { x: 50, y: thirdPartyYStart - 20, size: 15 });
+            page.drawText(`Phone Number: ${phoneNumber}`, { x: 50, y: thirdPartyYStart - 40, size: 15 });
+            page.drawText(`Vehicle Number: ${vehicleNumber}`, { x: 50, y: thirdPartyYStart - 60, size: 15 });
+            page.drawText(`License Number: ${licenseNumber}`, { x: 50, y: thirdPartyYStart - 80, size: 15 });
+            page.drawText(`Vehicle Model: ${vehicleModel}`, { x: 50, y: thirdPartyYStart - 100, size: 15 });
+            page.drawText('Documents:', { x: 50, y: thirdPartyYStart - 120, size: 15 });
+
+            if (documents && typeof documents === 'object') {
+                Object.entries(documents).forEach(([key, value], index) => {
+                    if (value) {
+                        page.drawText(`- ${key}: ${value}`, { x: 60, y: thirdPartyYStart - 140 - index * 20, size: 12 });
+                    }
+                });
+            }
+
+            // Damage Photos
+            const damagePhotosStart = thirdPartyYStart - 160 - (documents ? Object.keys(documents).length : 0) * 20;
+            page.drawText('Damage Photos:', { x: 50, y: damagePhotosStart, size: 15 });
+
+            if (damagePhotos && typeof damagePhotos === 'object') {
+                Object.entries(damagePhotos).forEach(([key, value], index) => {
+                    if (value) {
+                        page.drawText(`- ${key}: ${value}`, { x: 60, y: damagePhotosStart - 20 - index * 20, size: 12 });
+                    }
+                });
+            }
+
+            // Save the PDF document as bytes
             const pdfBytes = await pdfDoc.save();
 
-            const pdfBase64 = pdfBytes.toString('base64');
+            // Convert the PDF bytes to a base64 string
+            const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
 
+            // Define the path for the PDF file
             const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
 
+            // Write the base64 string to the file
             await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, {
                 encoding: FileSystem.EncodingType.Base64,
             });
@@ -143,6 +196,7 @@ const ReviewCase = ({ route, navigation }) => {
                 return;
             }
 
+            // Share the PDF file
             await Sharing.shareAsync(pdfPath, {
                 mimeType: 'application/pdf',
                 dialogTitle: 'Share PDF',
@@ -152,6 +206,11 @@ const ReviewCase = ({ route, navigation }) => {
             Alert.alert('Error', 'Failed to create or share PDF. Please try again.');
         }
     };
+
+
+
+
+
 
     const renderDetails = (details, title) => (
         <>
@@ -384,6 +443,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginVertical: 20,
+        marginBottom: 60,
         flexDirection: "row",
     },
     shareButtonText: {

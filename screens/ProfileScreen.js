@@ -97,7 +97,6 @@ const ProfileScreen = ({ navigation }) => {
       setLoggedInUserID(currentLoggedInUserID);
       const userResponse = await client.get(`/user/${currentLoggedInUserID}`);
       const { data } = userResponse;
-      console.log("Fetched logged in user:", data);
       setUsername(data.username);
       setEmail(data.email);
       setUserId(data.onboardingInfo.userId || "");
@@ -246,7 +245,6 @@ const ProfileScreen = ({ navigation }) => {
 
       await client.put(`/user/${currentLoggedInUserID}`, updatedUser);
 
-      console.log("Success: Profile updated successfully!");
       setProfilePic(updatedUser.image);
       navigation.navigate("Home Page", { refresh: true });
     } catch (error) {

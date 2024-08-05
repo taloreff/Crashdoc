@@ -27,8 +27,6 @@ const CaseDetails = ({ route }) => {
       try {
         const response = await client.get(`/case/${caseId}`);
         setCaseDetails(response.data);
-        console.log("response.data", response.data);
-        console.log("caseDetails USERINFO", caseDetails);
 
       } catch (error) {
         console.error("Error fetching case details:", error);

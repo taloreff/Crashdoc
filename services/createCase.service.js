@@ -70,7 +70,6 @@ export const createCaseService = {
         }
       );
 
-      console.log("postResponse", postResponse);
       let response
       if (currentLoggedInUserID) {
         response = await client.get("/user/" + currentLoggedInUserID);

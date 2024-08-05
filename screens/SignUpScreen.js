@@ -55,7 +55,6 @@ const SignUpScreen = ({ navigation }) => {
     if (!valid) return;
 
     setLoading(true);
-    console.log("Signing up:", username, email, password);
     const result = await loginSignupService.signup(username, email, password);
     setLoading(false);
 
