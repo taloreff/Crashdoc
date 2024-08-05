@@ -1,6 +1,4 @@
-// ReviewCase.js
 import React, { useEffect, useState } from "react";
-import client from "../backend/api/client";
 import {
     View,
     Text,
@@ -8,8 +6,14 @@ import {
     ScrollView,
     Image,
     TouchableOpacity,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import Swiper from "react-native-swiper";
+import { Feather } from "@expo/vector-icons";
+import { PDFDocument } from "pdf-lib";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { onboardingService } from "../services/onboarding.service";
 import { createCaseService } from "../services/createCase.service";
 
@@ -30,7 +34,7 @@ const ReviewCase = ({ route, navigation }) => {
         guestVehicleModel,
         guestDocuments,
         damagePhotos,
-        assessmentResult,
+        assessmentResult, // Consider changing this if it's a React element
     } = route.params;
 
     useEffect(() => {
@@ -73,10 +77,48 @@ const ReviewCase = ({ route, navigation }) => {
                     damagePhotos,
                 };
             }
-            createCaseService.handleCasePress(data);
+            await createCaseService.handleCasePress(data);
             navigation.navigate("Home Page");
         } catch (error) {
             console.error("Error creating case:", error);
+        }
+    };
+
+    const createPDFAndShare = async () => {
+        try {
+            // Create a new PDF document
+            const pdfDoc = await PDFDocument.create();
+            const page = pdfDoc.addPage([600, 400]);
+
+            page.drawText('User Information:', { x: 50, y: 350, size: 20 });
+            page.drawText(`User ID: ${userOnboardingInfo.userId}`, { x: 50, y: 330, size: 15 });
+            page.drawText(`Phone Number: ${userOnboardingInfo.phoneNumber}`, { x: 50, y: 310, size: 15 });
+            page.drawText(`Vehicle Number: ${userOnboardingInfo.vehicleNumber}`, { x: 50, y: 290, size: 15 });
+            page.drawText(`License Number: ${userOnboardingInfo.licenseNumber}`, { x: 50, y: 270, size: 15 });
+            page.drawText(`Vehicle Model: ${userOnboardingInfo.vehicleModel}`, { x: 50, y: 250, size: 15 });
+
+            const pdfBytes = await pdfDoc.save();
+
+            const pdfBase64 = pdfBytes.toString('base64'); // Convert to base64
+
+            const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
+
+            await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+
+            if (!(await Sharing.isAvailableAsync())) {
+                Alert.alert('Sharing is not available on this platform');
+                return;
+            }
+
+            await Sharing.shareAsync(pdfPath, {
+                mimeType: 'application/pdf',
+                dialogTitle: 'Share PDF',
+            });
+        } catch (error) {
+            console.error('Error creating PDF:', error);
+            Alert.alert('Error', 'Failed to create or share PDF. Please try again.');
         }
     };
 
@@ -136,6 +178,7 @@ const ReviewCase = ({ route, navigation }) => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#E93382" />
                 <Text>Loading...</Text>
             </View>
         );
@@ -143,7 +186,8 @@ const ReviewCase = ({ route, navigation }) => {
 
     return (
         <ScrollView style={styles.container}>
-            {userOnboardingInfo && renderDetails(userOnboardingInfo, "User Information")}
+            {userOnboardingInfo &&
+                renderDetails(userOnboardingInfo, "User Information")}
             {renderDetails(
                 {
                     userId: thirdPartyId,
@@ -159,20 +203,26 @@ const ReviewCase = ({ route, navigation }) => {
                 Object.values(userOnboardingInfo.documents),
                 "Documents"
             )}
-            {renderSwiperContent(
-                Object.values(damagePhotos),
-                "Damage Photos"
-            )}
+            {renderSwiperContent(Object.values(damagePhotos), "Damage Photos")}
 
             {assessmentResult && (
                 <View style={styles.assessmentResultContainer}>
                     <Text style={styles.assessmentResultTitle}>Assessment Result</Text>
-                    {assessmentResult}
+                    {typeof assessmentResult === 'string' ? (
+                        <Text>{assessmentResult}</Text>
+                    ) : (
+                        assessmentResult // Make sure this is serialized
+                    )}
                 </View>
             )}
 
             <TouchableOpacity style={styles.submitButton} onPress={handleCaseSubmit}>
                 <Text style={styles.submitButtonText}>Submit Case</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.shareButton} onPress={createPDFAndShare}>
+                <Feather name="share" size={20} color="#fff" />
+                <Text style={styles.shareButtonText}>Share PDF</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -282,12 +332,28 @@ const styles = StyleSheet.create({
         borderRadius: 44,
         alignItems: "center",
         justifyContent: "center",
-        marginVertical: 40,
+        marginVertical: 20,
     },
     submitButtonText: {
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    shareButton: {
+        backgroundColor: "#007386",
+        paddingVertical: 18,
+        paddingHorizontal: 16,
+        borderRadius: 44,
+        alignItems: "center",
+        justifyContent: "center",
+        marginVertical: 20,
+        flexDirection: "row",
+    },
+    shareButtonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 10,
     },
 });
 
