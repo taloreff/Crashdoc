@@ -10,6 +10,16 @@ async function loadLocalImageAsBase64() {
   return readAsStringAsync(asset.localUri, { encoding: "base64" });
 }
 
+const isGuest = async () => {
+  try {
+    const guestId = await AsyncStorage.getItem("guestId");
+    return guestId !== null;
+  } catch (error) {
+    console.error("Error checking guest status:", error);
+    return false;
+  }
+};
+
 const login = async (email, password) => {
   try {
     const response = await client.post("/user/login", { email, password });
@@ -87,4 +97,5 @@ export default {
   logout,
   isLoggedIn,
   guestLogin,
+  isGuest,
 };

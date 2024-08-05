@@ -17,8 +17,18 @@ import avatarImage from "../assets/avatar.jpg";
 const TopNavigation = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState(new Animated.Value(1));
+  const [isGuestUser, setIsGuestUser] = useState(false);
   const navigation = useNavigation();
   const { setProfilePic } = useContext(ProfileContext);
+
+  useEffect(() => {
+    const checkGuestStatus = async () => {
+      const guestStatus = await loginSignupService.isGuest();
+      setIsGuestUser(guestStatus);
+    };
+
+    checkGuestStatus();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -108,20 +118,22 @@ const TopNavigation = () => {
                 <Text style={styles.menuActionText}>My Cases</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={goToProfileScreen}
-              style={styles.menuAction}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Feather
-                  name="user"
-                  size={18}
-                  color="#E93382"
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.menuActionText}>My Profile</Text>
-              </View>
-            </TouchableOpacity>
+            {!isGuestUser && ( // Conditionally render "My Profile"
+              <TouchableOpacity
+                onPress={goToProfileScreen}
+                style={styles.menuAction}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#E93382"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.menuActionText}>My Profile</Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </Animated.View>
         )}
       </View>
