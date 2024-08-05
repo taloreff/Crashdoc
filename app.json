@@ -6,7 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "extra": {
       "IP": "192.168.3.5"
     },
@@ -15,8 +18,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
-    "permissions": ["mediaLibrary"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "permissions": [
+      "mediaLibrary"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -28,6 +35,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

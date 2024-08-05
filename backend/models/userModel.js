@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const onboardingInfoSchema = require('./onboardingInfoSchema');
+const mongoose = require("mongoose");
+const onboardingInfoSchema = require("./onboardingInfoSchema");
 
 const userSchema = new mongoose.Schema(
   {
@@ -8,9 +8,9 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     image: { type: String },
     cases: { type: Array, default: [] },
-    onboardingInfo: { type: onboardingInfoSchema, default: {} }
+    onboardingInfo: { type: onboardingInfoSchema, default: {} },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);
