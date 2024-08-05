@@ -25,7 +25,6 @@ export const createCaseService = {
         "loggedInUserID"
       );
       const guestId = await AsyncStorage.getItem("guestId");
-      console.log("guestId", guestId);
       let userData;
       if (currentLoggedInUserID) {
         const { data } = await client.get("/user/" + currentLoggedInUserID, {
@@ -35,7 +34,6 @@ export const createCaseService = {
         });
         userData = data
       } else {
-        console.log("1111111")
         const { data } = await client.get("/guest/user/" + guestId, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,7 +43,6 @@ export const createCaseService = {
       }
 
 
-      console.log("userData", userData);
 
       const postResponse = await client.post(
         "/case",
@@ -73,7 +70,7 @@ export const createCaseService = {
         }
       );
 
-      console.log("post response", postResponse.data);
+      console.log("postResponse", postResponse);
       let response
       if (currentLoggedInUserID) {
         response = await client.get("/user/" + currentLoggedInUserID);
@@ -81,14 +78,12 @@ export const createCaseService = {
       else {
         response = await client.get("/guest/user/" + guestId);
       }
-      console.log("USER response", response.data);
       const existingUser = response.data;
       if (existingUser) {
         const updatedUser = {
           ...existingUser,
           cases: [...existingUser.cases, postResponse.data],
         };
-        console.log("updatedUser ", updatedUser);
         if (currentLoggedInUserID) {
           await client.put(`/user/${currentLoggedInUserID}`, updatedUser);
         }

@@ -16,12 +16,15 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { onboardingService } from "../services/onboarding.service";
 import { createCaseService } from "../services/createCase.service";
+import client from "../backend/api/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ReviewCase = ({ route, navigation }) => {
     const [userOnboardingInfo, setUserOnboardingInfo] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const {
+        userId,
         thirdPartyId,
         phoneNumber,
         vehicleNumber,
@@ -38,31 +41,41 @@ const ReviewCase = ({ route, navigation }) => {
     } = route.params;
 
     useEffect(() => {
-        const fetchOnboardingInfo = async () => {
-            try {
-                const onboardingInfo = await onboardingService.getOnboardingInfo();
-                setUserOnboardingInfo(onboardingInfo);
-            } catch (error) {
-                console.error("Error fetching onboarding info:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOnboardingInfo();
+        console.log("guestPhoneNumber", guestPhoneNumber);
+        if (!guestPhoneNumber) fetchOnboardingInfo();
+        else {
+            setLoading(false);
+        }
     }, []);
+
+    const fetchOnboardingInfo = async () => {
+        try {
+            const onboardingInfo = await onboardingService.getOnboardingInfo();
+            setUserOnboardingInfo(onboardingInfo);
+        } catch (error) {
+            console.error("Error fetching onboarding info:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCaseSubmit = async () => {
         try {
             let data;
             if (guestPhoneNumber) {
                 data = {
+                    userId,
+                    guestPhoneNumber,
+                    guestVehicleNumber,
+                    guestLicenseNumber,
+                    guestVehicleModel,
+                    guestDocuments,
                     thirdPartyId,
-                    phoneNumber: guestPhoneNumber,
-                    vehicleNumber: guestVehicleNumber,
-                    licenseNumber: guestLicenseNumber,
-                    vehicleModel: guestVehicleModel,
-                    documents: guestDocuments,
+                    phoneNumber,
+                    vehicleNumber,
+                    licenseNumber,
+                    vehicleModel,
+                    documents,
                     damagePhotos,
                 };
             } else {
@@ -77,12 +90,30 @@ const ReviewCase = ({ route, navigation }) => {
                     damagePhotos,
                 };
             }
+            console.log("SUBMITTING GUEST CASE", data);
+
             await createCaseService.handleCasePress(data);
+
+            // const guestId = await AsyncStorage.getItem("guestId");
+
+            // const { data: guestData } = await client.get(`/guest/user/${guestId}`);
+            // console.log("GUEST DATA", guestData);
+
+            // const updatedGuestData = {
+            //     ...guestData,
+            //     userInfo: {
+            //         userId, phoneNumber: guestPhoneNumber, vehicleNumber: guestVehicleNumber, licenseNumber: guestLicenseNumber, vehicleModel: guestVehicleModel
+            //     },
+            // };
+            // console.log("UPDATED GUEST DATA", updatedGuestData.userInfo);
+            // await client.put(`/guest/user/${userId}`, updatedGuestData);
+            // await client.put(`/case/${guestData.cases._id}`, updatedGuestData);
             navigation.navigate("Home Page");
         } catch (error) {
             console.error("Error creating case:", error);
         }
     };
+
 
     const createPDFAndShare = async () => {
         try {
@@ -186,26 +217,28 @@ const ReviewCase = ({ route, navigation }) => {
 
     return (
         <ScrollView style={styles.container}>
-            {userOnboardingInfo &&
-                renderDetails(userOnboardingInfo, "User Information")}
+            {userOnboardingInfo ?
+                renderDetails(userOnboardingInfo, "User Information") : renderDetails({ userId, phoneNumber: guestPhoneNumber, vehicleNumber: guestVehicleNumber, licenseNumber: guestLicenseNumber, vehicleModel: guestVehicleModel }, "Guest Information")}
             {renderDetails(
                 {
                     userId: thirdPartyId,
-                    phoneNumber: guestPhoneNumber || phoneNumber,
-                    vehicleNumber: guestVehicleNumber || vehicleNumber,
-                    licenseNumber: guestLicenseNumber || licenseNumber,
-                    vehicleModel: guestVehicleModel || vehicleModel,
+                    phoneNumber: phoneNumber,
+                    vehicleNumber: vehicleNumber,
+                    licenseNumber: licenseNumber,
+                    vehicleModel: vehicleModel,
                 },
                 "Third Party Information"
             )}
 
-            {renderSwiperContent(
+            {userOnboardingInfo ? renderSwiperContent(
                 Object.values(userOnboardingInfo.documents),
                 "User Documents"
-            )}
+            ) : renderSwiperContent(
+                Object.values(guestDocuments),
+                "Guest Documents")}
             {renderSwiperContent(
                 Object.values(documents),
-                "User Documents"
+                "Third Party Documents"
             )}
             {renderSwiperContent(Object.values(damagePhotos), "Damage Photos")}
 
@@ -215,7 +248,7 @@ const ReviewCase = ({ route, navigation }) => {
                     {typeof assessmentResult === 'string' ? (
                         <Text>{assessmentResult}</Text>
                     ) : (
-                        assessmentResult // Make sure this is serialized
+                        assessmentResult
                     )}
                 </View>
             )}
