@@ -40,6 +40,7 @@ const ProfileScreen = ({ navigation }) => {
   const [loggedInUserID, setLoggedInUserID] = useState(null);
   const [loading, setLoading] = useState(false);
   const { setProfilePic } = useContext(ProfileContext);
+  const [uploading, setUploading] = useState(false);
 
   // New State Variables for Additional Information
   const [userId, setUserId] = useState("");
@@ -53,8 +54,8 @@ const ProfileScreen = ({ navigation }) => {
   const documentTypeMapping = {
     "DRIVER LICENSE": "driversLicense",
     "VEHICLE LICENSE": "vehicleLicense",
-    "INSURANCE": "insurance",
-    "REGISTRATION": "registration",
+    INSURANCE: "insurance",
+    REGISTRATION: "registration",
     "ADDITIONAL DOCUMENTS": "additionalDocuments",
   };
 
@@ -85,7 +86,33 @@ const ProfileScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setProfileImage({ uri: result.assets[0].uri });
+      setUploading(true);
+      try {
+        const uri = result.assets[0].uri;
+        const base64Img = await fetch(uri)
+          .then((response) => response.blob())
+          .then(
+            (blob) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              })
+          );
+
+        const uploadedImage = await uploadService.uploadImg(base64Img);
+        setProfileImage({ uri: uploadedImage.secure_url });
+        setProfilePic(uploadedImage.secure_url);
+      } catch (error) {
+        Alert.alert(
+          "Upload Error",
+          "Failed to upload the image. Please try again."
+        );
+        console.log("Upload Error:", error);
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
@@ -175,7 +202,8 @@ const ProfileScreen = ({ navigation }) => {
 
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
-    const mediaLibraryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const mediaLibraryStatus =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     return (
       cameraStatus.status === "granted" &&
       mediaLibraryStatus.status === "granted"
@@ -184,10 +212,14 @@ const ProfileScreen = ({ navigation }) => {
 
   const validateFields = () => {
     const newErrors = {};
-    if (!validatePhoneNumber(phoneNumber)) newErrors.phoneNumber = "Please enter a valid phone number";
-    if (!validateCarNumber(vehicleNumber)) newErrors.vehicleNumber = "Please enter a valid vehicle number";
-    if (!validateLicenseNumber(licenseNumber)) newErrors.licenseNumber = "Please enter a valid license number";
-    if (!validateVehicleModel(vehicleModel)) newErrors.vehicleModel = "Please enter a valid vehicle model";
+    if (!validatePhoneNumber(phoneNumber))
+      newErrors.phoneNumber = "Please enter a valid phone number";
+    if (!validateCarNumber(vehicleNumber))
+      newErrors.vehicleNumber = "Please enter a valid vehicle number";
+    if (!validateLicenseNumber(licenseNumber))
+      newErrors.licenseNumber = "Please enter a valid license number";
+    if (!validateVehicleModel(vehicleModel))
+      newErrors.vehicleModel = "Please enter a valid vehicle model";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -221,7 +253,7 @@ const ProfileScreen = ({ navigation }) => {
           vehicleNumber,
           licenseNumber,
           vehicleModel,
-          documents
+          documents,
         },
         image: profileImage.uri || null,
       };
@@ -263,7 +295,14 @@ const ProfileScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.profileContainer}>
             <View style={styles.profileImageContainer}>
-              <Image source={profileImage ? profileImage : avatarImg} style={styles.profileImage} />
+              {uploading ? (
+                <ActivityIndicator size="large" color="#e23680" />
+              ) : (
+                <Image
+                  source={profileImage ? profileImage : avatarImg}
+                  style={styles.profileImage}
+                />
+              )}
               <TouchableOpacity
                 style={styles.editIconContainer}
                 onPress={handleEditProfileImage}
