@@ -7,15 +7,17 @@ import {
   ScrollView,
   Image,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import client from "../backend/api/client";
-import { uploadService } from "../services/upload.service";  // Import the upload service
+import { uploadService } from "../services/upload.service"; // Import the upload service
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState({});
+  const [uploading, setUploading] = useState({});
   const [processing, setProcessing] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState(null);
 
@@ -107,7 +109,10 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         default:
           message = (
             <Text>
-              The assessment result is <Text style={{ fontWeight: "bold" }}>unknown</Text>. This might indicate an error in processing the images or an unexpected type of damage that could not be categorized. Please try again.
+              The assessment result is{" "}
+              <Text style={{ fontWeight: "bold" }}>unknown</Text>. This might
+              indicate an error in processing the images or an unexpected type
+              of damage that could not be categorized. Please try again.
             </Text>
           );
       }
@@ -206,15 +211,23 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
   };
 
   const uploadAndSaveImage = async (index, imageUri) => {
+    setUploading((prevUploading) => ({
+      ...prevUploading,
+      [`damagePhoto${index}`]: true,
+    }));
+
     try {
       const base64Img = await fetch(imageUri)
-        .then(response => response.blob())
-        .then(blob => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        }));
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            })
+        );
 
       const uploadedImage = await uploadService.uploadImg(base64Img);
       setDamagePhotos((prevPhotos) => ({
@@ -222,8 +235,16 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         [`damagePhoto${index}`]: uploadedImage.secure_url,
       }));
     } catch (error) {
-      Alert.alert("Upload Error", "Failed to upload the image. Please try again.");
+      Alert.alert(
+        "Upload Error",
+        "Failed to upload the image. Please try again."
+      );
       console.log("Upload Error:", error);
+    } finally {
+      setUploading((prevUploading) => ({
+        ...prevUploading,
+        [`damagePhoto${index}`]: false,
+      }));
     }
   };
 
@@ -256,37 +277,40 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
               ["Upload Damage Photo 5"],
             ].map((docPair, pairIndex) => (
               <View style={styles.slide} key={`pair-${pairIndex}`}>
-                {docPair.map((docType, index) => (
-                  <TouchableOpacity
-                    style={styles.documentButton}
-                    key={docType}
-                    onPress={() =>
-                      handlePhotoUpload(docType, pairIndex * 2 + index + 1)
-                    }
-                  >
-                    {damagePhotos[`damagePhoto${pairIndex * 2 + index + 1}`] ? (
-                      <Image
-                        source={{
-                          uri: damagePhotos[
-                            `damagePhoto${pairIndex * 2 + index + 1}`
-                          ],
-                        }}
-                        style={styles.documentImage}
-                      />
-                    ) : (
-                      <>
-                        <View style={styles.uploadIconContainer}>
-                          <Feather
-                            name="upload"
-                            size={18}
-                            style={styles.uploadIcon}
-                          />
-                        </View>
-                        <Text style={styles.documentButtonText}>{docType}</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                ))}
+                {docPair.map((docType, index) => {
+                  const photoKey = `damagePhoto${pairIndex * 2 + index + 1}`;
+                  return (
+                    <TouchableOpacity
+                      style={styles.documentButton}
+                      key={docType}
+                      onPress={() =>
+                        handlePhotoUpload(docType, pairIndex * 2 + index + 1)
+                      }
+                    >
+                      {uploading[photoKey] ? (
+                        <ActivityIndicator size="small" color="#e23680" />
+                      ) : damagePhotos[photoKey] ? (
+                        <Image
+                          source={{ uri: damagePhotos[photoKey] }}
+                          style={styles.documentImage}
+                        />
+                      ) : (
+                        <>
+                          <View style={styles.uploadIconContainer}>
+                            <Feather
+                              name="upload"
+                              size={18}
+                              style={styles.uploadIcon}
+                            />
+                          </View>
+                          <Text style={styles.documentButtonText}>
+                            {docType}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             ))}
           </Swiper>
