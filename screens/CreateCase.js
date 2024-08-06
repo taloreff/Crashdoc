@@ -194,7 +194,7 @@ const CreateCase = ({ route, navigation }) => {
       documentTypes={documentTypes}
       documents={documents}
       onUpload={uploadAndSaveImage}
-      documentTypeMapping={documentTypeMapping}  // Add this line
+      documentTypeMapping={documentTypeMapping}
       disabled={
         !thirdPartyId ||
         !phoneNumber ||

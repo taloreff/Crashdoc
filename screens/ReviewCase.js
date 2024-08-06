@@ -16,6 +16,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { onboardingService } from "../services/onboarding.service";
 import { createCaseService } from "../services/createCase.service";
+import logo from "../assets/logo.png"
 import { Buffer } from "buffer";
 
 const ReviewCase = ({ route, navigation }) => {
@@ -101,198 +102,79 @@ const ReviewCase = ({ route, navigation }) => {
     try {
       // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([600, 700]); // Increased height for more content
+      const page = pdfDoc.addPage([600, 900]); // Adjusted for content fit
 
-      // Determine whether the user is a guest
-      const isGuest = !!guestPhoneNumber;
+      // Fonts
+      const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
 
-      // User Information
-      page.drawText("User Information:", { x: 50, y: 650, size: 20 });
+      // Headers
+      const titleSize = 20;
+      const subtitleSize = 15;
+      const contentSize = 12;
+      const headerY = 850;
+      const contentStartY = 820;
 
-      console.log(
-        "all:",
-        userOnboardingInfo,
-        thirdPartyId,
-        phoneNumber,
-        vehicleNumber,
-        licenseNumber,
-        vehicleModel,
-        documents,
-        damagePhotos
-      );
+      // Title
+      page.drawText("My Case", {
+        x: 50,
+        y: headerY,
+        size: titleSize,
+        font: timesRomanFont,
+      });
 
-      if (isGuest) {
-        page.drawText(`User ID: ${userId}`, { x: 50, y: 630, size: 15 });
-        page.drawText(`Phone Number: ${guestPhoneNumber}`, {
+      // User Information Section
+      const userInfoYStart = contentStartY;
+      const labels = ['User ID', 'Phone Number', 'Vehicle Number', 'License Number', 'Vehicle Model'];
+      const values = [userId, phoneNumber, vehicleNumber, licenseNumber, vehicleModel];
+      labels.forEach((label, i) => {
+        page.drawText(`${label}: ${values[i]}`, {
           x: 50,
-          y: 610,
-          size: 15,
+          y: userInfoYStart - i * 20,
+          size: subtitleSize,
+          font: timesRomanFont,
         });
-        page.drawText(`Vehicle Number: ${guestVehicleNumber}`, {
-          x: 50,
-          y: 590,
-          size: 15,
-        });
-        page.drawText(`License Number: ${guestLicenseNumber}`, {
-          x: 50,
-          y: 570,
-          size: 15,
-        });
-        page.drawText(`Vehicle Model: ${guestVehicleModel}`, {
-          x: 50,
-          y: 550,
-          size: 15,
-        });
-        page.drawText("Documents:", { x: 50, y: 530, size: 15 });
+      });
 
-        if (guestDocuments && typeof guestDocuments === "object") {
-          Object.entries(guestDocuments).forEach(([key, value], index) => {
-            if (value) {
-              page.drawText(`- ${key}: ${value}`, {
-                x: 60,
-                y: 510 - index * 20,
-                size: 12,
-              });
-            }
+      // Documents - Embedding images
+      const imageYStart = userInfoYStart - 150;
+      if (documents && typeof documents === 'object') {
+        for (const [key, doc] of Object.entries(documents)) {
+          const img = await pdfDoc.embedJpg(doc); // Assuming JPEG images
+          const { width, height } = img.scale(0.5);
+          page.drawImage(img, {
+            x: 50,
+            y: imageYStart - (width + 10),
+            width: width,
+            height: height
           });
+          imageYStart -= (height + 10); // Adjust y position for the next image
         }
-      } else {
-        page.drawText(`User ID: ${userOnboardingInfo.userId}`, {
-          x: 50,
-          y: 630,
-          size: 15,
-        });
-        page.drawText(`Phone Number: ${userOnboardingInfo.phoneNumber}`, {
-          x: 50,
-          y: 610,
-          size: 15,
-        });
-        page.drawText(`Vehicle Number: ${userOnboardingInfo.vehicleNumber}`, {
-          x: 50,
-          y: 590,
-          size: 15,
-        });
-        page.drawText(`License Number: ${userOnboardingInfo.licenseNumber}`, {
-          x: 50,
-          y: 570,
-          size: 15,
-        });
-        page.drawText(`Vehicle Model: ${userOnboardingInfo.vehicleModel}`, {
-          x: 50,
-          y: 550,
-          size: 15,
-        });
-        page.drawText("Documents:", { x: 50, y: 530, size: 15 });
-
-        if (
-          userOnboardingInfo.documents &&
-          typeof userOnboardingInfo.documents === "object"
-        ) {
-          Object.entries(userOnboardingInfo.documents).forEach(
-            ([key, value], index) => {
-              console.log("key:", key, "value:", value);
-              if (value && key !== "_id") {
-                page.drawText(`- ${key}: ${value}`, {
-                  x: 60,
-                  y: 510 - index * 20,
-                  size: 12,
-                });
-              }
-            }
-          );
-        }
-      }
-
-      // Third Party Information
-      const thirdPartyYStart = isGuest
-        ? 310
-        : 430 -
-          (userOnboardingInfo.documents
-            ? Object.keys(userOnboardingInfo.documents).length
-            : 0) *
-            20;
-      page.drawText("Third Party Information:", {
-        x: 50,
-        y: thirdPartyYStart,
-        size: 20,
-      });
-      page.drawText(`Third Party ID: ${thirdPartyId}`, {
-        x: 50,
-        y: thirdPartyYStart - 20,
-        size: 15,
-      });
-      page.drawText(`Phone Number: ${phoneNumber}`, {
-        x: 50,
-        y: thirdPartyYStart - 40,
-        size: 15,
-      });
-      page.drawText(`Vehicle Number: ${vehicleNumber}`, {
-        x: 50,
-        y: thirdPartyYStart - 60,
-        size: 15,
-      });
-      page.drawText(`License Number: ${licenseNumber}`, {
-        x: 50,
-        y: thirdPartyYStart - 80,
-        size: 15,
-      });
-      page.drawText(`Vehicle Model: ${vehicleModel}`, {
-        x: 50,
-        y: thirdPartyYStart - 100,
-        size: 15,
-      });
-      page.drawText("Documents:", {
-        x: 50,
-        y: thirdPartyYStart - 120,
-        size: 15,
-      });
-
-      if (documents && typeof documents === "object") {
-        Object.entries(documents).forEach(([key, value], index) => {
-          if (value) {
-            page.drawText(`- ${key}: ${value}`, {
-              x: 60,
-              y: thirdPartyYStart - 140 - index * 20,
-              size: 12,
-            });
-          }
-        });
       }
 
       // Damage Photos
-      const damagePhotosStart =
-        thirdPartyYStart -
-        160 -
-        (documents ? Object.keys(documents).length : 0) * 20;
-      page.drawText("Damage Photos:", {
-        x: 50,
-        y: damagePhotosStart,
-        size: 15,
-      });
-
-      if (damagePhotos && typeof damagePhotos === "object") {
-        Object.entries(damagePhotos).forEach(([key, value], index) => {
-          if (value) {
-            page.drawText(`- ${key}: ${value}`, {
-              x: 60,
-              y: damagePhotosStart - 20 - index * 20,
-              size: 12,
-            });
-          }
-        });
+      let damagePhotoYStart = imageYStart - 100; // Starting point adjusted for spacing
+      if (damagePhotos && typeof damagePhotos === 'object') {
+        for (const [key, photo] of Object.entries(damagePhotos)) {
+          const img = await pdfDoc.embedJpg(photo); // Assuming JPEG images
+          const { width, height } = img.scale(0.5);
+          page.drawImage(img, {
+            x: 50,
+            y: damagePhotoYStart - (width + 10),
+            width: width,
+            height: height
+          });
+          damagePhotoYStart -= (height + 10); // Adjust y position for the next image
+        }
       }
 
       // Save the PDF document as bytes
       const pdfBytes = await pdfDoc.save();
 
-      // Convert the PDF bytes to a base64 string
-      const pdfBase64 = Buffer.from(pdfBytes).toString("base64");
-
       // Define the path for the PDF file
       const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
 
-      // Write the base64 string to the file
-      await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, {
+      // Write the PDF bytes to the file
+      await FileSystem.writeAsStringAsync(pdfPath, pdfBytes, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
@@ -303,14 +185,16 @@ const ReviewCase = ({ route, navigation }) => {
 
       // Share the PDF file
       await Sharing.shareAsync(pdfPath, {
-        mimeType: "application/pdf",
-        dialogTitle: "Share PDF",
+        mimeType: 'application/pdf',
+        dialogTitle: 'Share PDF',
       });
     } catch (error) {
       console.error("Error creating PDF:", error);
       Alert.alert("Error", "Failed to create or share PDF. Please try again.");
     }
   };
+
+
 
   const renderDetails = (details, title) => (
     <>
@@ -379,15 +263,15 @@ const ReviewCase = ({ route, navigation }) => {
       {userOnboardingInfo
         ? renderDetails(userOnboardingInfo, "User Information")
         : renderDetails(
-            {
-              userId,
-              phoneNumber: guestPhoneNumber,
-              vehicleNumber: guestVehicleNumber,
-              licenseNumber: guestLicenseNumber,
-              vehicleModel: guestVehicleModel,
-            },
-            "Guest Information"
-          )}
+          {
+            userId,
+            phoneNumber: guestPhoneNumber,
+            vehicleNumber: guestVehicleNumber,
+            licenseNumber: guestLicenseNumber,
+            vehicleModel: guestVehicleModel,
+          },
+          "Guest Information"
+        )}
       {renderDetails(
         {
           userId: thirdPartyId,
@@ -401,9 +285,9 @@ const ReviewCase = ({ route, navigation }) => {
 
       {userOnboardingInfo
         ? renderSwiperContent(
-            Object.values(userOnboardingInfo.documents),
-            "User Documents"
-          )
+          Object.values(userOnboardingInfo.documents),
+          "User Documents"
+        )
         : renderSwiperContent(Object.values(guestDocuments), "Guest Documents")}
       {renderSwiperContent(Object.values(documents), "Third Party Documents")}
       {renderSwiperContent(Object.values(damagePhotos), "Damage Photos")}

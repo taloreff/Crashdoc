@@ -17,10 +17,10 @@ import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import client from "../backend/api/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Buffer } from "buffer";
+import { Buffer } from 'buffer';
 
 const { width } = Dimensions.get("window");
 
@@ -50,182 +50,211 @@ const MyCases = () => {
       }
     };
 
+
     fetchCases();
   }, []);
 
-  if (cases.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.noCasesWrapper}>
-          <View style={styles.noCasesContainer}>
-            <Text style={styles.noCasesText}>
-              You have no cases at the moment. 🚘
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
+  async function fetchImageAsArrayBuffer(imageUrl) {
+    console.log("IMAGE URL", imageUrl);
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return arrayBuffer;
+    } catch (error) {
+      console.error("Error fetching image:", error);
+      throw error;  // Re-throw to handle it in the calling function
+    }
   }
 
   const createPDFAndShare = async (caseItem) => {
     try {
-      // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([600, 700]); // Increased height for more content
+      const page = pdfDoc.addPage([600, 1000]); // Increase height as needed
+      const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      // Fetch and embed the logo
+      const logoUrl = 'https://res.cloudinary.com/dd7nwvjli/image/upload/v1722956071/glnuan24jxpdjzpclak1.jpg';
+      const logoImageBytes = await fetchImageAsArrayBuffer(logoUrl);
+      const logoImage = await pdfDoc.embedJpg(logoImageBytes);
+
+      // Draw the logo in the top right corner
+      page.drawImage(logoImage, {
+        x: page.getWidth() - 220, // Adjust according to your layout needs
+        y: page.getHeight() - 120, // Adjust according to your layout needs
+        width: 200,
+        height: 100
+      });
+
+      const drawBoldText = (text, x, y, size) => {
+        page.drawText(text, { x, y, size, font: helveticaBold });
+      };
+
+      const drawText = (text, x, y, size) => {
+        page.drawText(text, { x, y, size, font: helvetica });
+      };
+
+      // Draw Image
+      const drawImage = async (imageUrl, x, y, width, height) => {
+        if (!imageUrl) {
+          console.log("Attempted to load an image with an empty URL");
+          return;
+        }
+        try {
+          const imageBytes = await fetchImageAsArrayBuffer(imageUrl);
+
+          // Check if the image is JPEG or PNG
+          let image;
+          if (imageUrl.endsWith('.png')) {
+            image = await pdfDoc.embedPng(imageBytes);
+          } else if (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg')) {
+            image = await pdfDoc.embedJpg(imageBytes);
+          } else {
+            console.warn(`Unsupported image format for URL: ${imageUrl}`);
+            return;
+          }
+
+          page.drawImage(image, { x, y, width, height });
+        } catch (error) {
+          console.error(`Failed to load image from URL: ${imageUrl}`, error);
+        }
+      };
+
+      // Layout setup
+      let yPos = 950; // Initial y position for the page
+      const initialXPos = 50; // Starting x position for the first image
+      const imageWidth = 100;
+      const imageHeight = 100;
+      const xSpacing = 120; // Space between images horizontally
+      const ySpacing = 120; // Space between rows of images
+
+      // Title
+      drawBoldText('My Case', 50, yPos, 24);
+      yPos -= 40;
 
       // User Information
-      page.drawText("User Information:", { x: 50, y: 650, size: 20 });
+      drawBoldText('User Information:', 50, yPos, 16);
+      yPos -= 20;
+      const userInfo = [
+        { label: 'User ID', value: caseItem.userInfo.userId },
+        { label: 'Phone Number', value: caseItem.userInfo.phoneNumber },
+        { label: 'Vehicle Number', value: caseItem.userInfo.vehicleNumber },
+        { label: 'License Number', value: caseItem.userInfo.licenseNumber },
+        { label: 'Vehicle Model', value: caseItem.userInfo.vehicleModel }
+      ];
 
-      // Extract user information from caseItem
-      const userInfo = caseItem.userInfo || {};
+      userInfo.forEach((info) => {
+        drawText(`${info.label}: ${info.value || 'N/A'}`, 60, yPos, 12);
+        yPos -= 15;
+      });
+      yPos -= 10;
 
-      page.drawText(`User ID: ${userInfo.userId || "N/A"}`, {
-        x: 50,
-        y: 630,
-        size: 15,
-      });
-      page.drawText(`Phone Number: ${userInfo.phoneNumber || "N/A"}`, {
-        x: 50,
-        y: 610,
-        size: 15,
-      });
-      page.drawText(`Vehicle Number: ${userInfo.vehicleNumber || "N/A"}`, {
-        x: 50,
-        y: 590,
-        size: 15,
-      });
-      page.drawText(`License Number: ${userInfo.licenseNumber || "N/A"}`, {
-        x: 50,
-        y: 570,
-        size: 15,
-      });
-      page.drawText(`Vehicle Model: ${userInfo.vehicleModel || "N/A"}`, {
-        x: 50,
-        y: 550,
-        size: 15,
-      });
-      page.drawText("Documents:", { x: 50, y: 530, size: 15 });
-
-      if (userInfo.documents && typeof userInfo.documents === "object") {
-        Object.entries(userInfo.documents).forEach(([key, value], index) => {
-          if (value && key !== "_id") {
-            page.drawText(`- ${key}: ${value}`, {
-              x: 60,
-              y: 510 - index * 20,
-              size: 12,
-            });
+      // User Documents
+      drawBoldText('Documents:', 50, yPos, 16);
+      yPos -= 20;
+      if (caseItem.userInfo && caseItem.userInfo.documents) {
+        let xPos = initialXPos;
+        let imageCount = 0;
+        for (const [key, docUrl] of Object.entries(caseItem.userInfo.documents)) {
+          if (key === '_id' || !docUrl) continue;
+          await drawImage(docUrl, xPos, yPos - imageHeight, imageWidth, imageHeight);
+          xPos += xSpacing;
+          imageCount++;
+          if (imageCount % 4 === 0) { // Move to the next row after 4 images
+            xPos = initialXPos;
+            yPos -= ySpacing;
           }
-        });
+        }
+        if (imageCount % 4 !== 0) {
+          yPos -= ySpacing; // Move to the next section if there are remaining images
+        }
       }
 
       // Third Party Information
-      const thirdPartyYStart =
-        430 -
-        (userInfo.documents ? Object.keys(userInfo.documents).length : 0) * 20;
-      page.drawText("Third Party Information:", {
-        x: 50,
-        y: thirdPartyYStart,
-        size: 20,
-      });
-      page.drawText(`Third Party ID: ${caseItem.thirdPartyId || "N/A"}`, {
-        x: 50,
-        y: thirdPartyYStart - 20,
-        size: 15,
-      });
-      page.drawText(`Phone Number: ${caseItem.phoneNumber || "N/A"}`, {
-        x: 50,
-        y: thirdPartyYStart - 40,
-        size: 15,
-      });
-      page.drawText(`Vehicle Number: ${caseItem.vehicleNumber || "N/A"}`, {
-        x: 50,
-        y: thirdPartyYStart - 60,
-        size: 15,
-      });
-      page.drawText(`License Number: ${caseItem.licenseNumber || "N/A"}`, {
-        x: 50,
-        y: thirdPartyYStart - 80,
-        size: 15,
-      });
-      page.drawText(`Vehicle Model: ${caseItem.vehicleModel || "N/A"}`, {
-        x: 50,
-        y: thirdPartyYStart - 100,
-        size: 15,
-      });
-      page.drawText("Documents:", {
-        x: 50,
-        y: thirdPartyYStart - 120,
-        size: 15,
-      });
+      yPos -= 60;
+      drawBoldText('Third Party Information:', 50, yPos, 16);
+      const thirdPartyInfo = [
+        { label: 'Third Party ID', value: caseItem.thirdPartyId },
+        { label: 'Phone Number', value: caseItem.phoneNumber },
+        { label: 'Vehicle Number', value: caseItem.vehicleNumber },
+        { label: 'License Number', value: caseItem.licenseNumber },
+        { label: 'Vehicle Model', value: caseItem.vehicleModel }
+      ];
 
-      if (caseItem.documents && Array.isArray(caseItem.documents)) {
-        caseItem.documents.forEach((doc, docIndex) => {
-          Object.entries(doc).forEach(([key, value], index) => {
-            if (value) {
-              page.drawText(`- ${key}: ${value}`, {
-                x: 60,
-                y: thirdPartyYStart - 140 - docIndex * 40 - index * 20,
-                size: 12,
-              });
-            }
-          });
-        });
+      thirdPartyInfo.forEach((info) => {
+        drawText(`${info.label}: ${info.value || 'N/A'}`, 60, yPos, 12);
+        yPos -= 15;
+      });
+      yPos -= 10;
+
+      // Third Party Documents
+      drawBoldText('Documents:', 50, yPos, 16);
+      yPos -= 20;
+      if (caseItem.documents) {
+        let xPos = initialXPos;
+        let imageCount = 0;
+        for (const [key, docUrl] of Object.entries(caseItem.documents[0])) {
+          if (key === '_id' || !docUrl) continue;
+          await drawImage(docUrl, xPos, yPos - imageHeight, imageWidth, imageHeight);
+          xPos += xSpacing;
+          imageCount++;
+          if (imageCount % 4 === 0) {
+            xPos = initialXPos;
+            yPos -= ySpacing;
+          }
+        }
+        if (imageCount % 4 !== 0) {
+          yPos -= ySpacing;
+        }
       }
 
       // Damage Photos
-      const damagePhotosStart =
-        thirdPartyYStart -
-        160 -
-        (caseItem.documents ? caseItem.documents.length : 0) * 40;
-      page.drawText("Damage Photos:", {
-        x: 50,
-        y: damagePhotosStart,
-        size: 15,
-      });
-
-      if (caseItem.damagePhotos && Array.isArray(caseItem.damagePhotos)) {
-        caseItem.damagePhotos.forEach((photo, photoIndex) => {
-          Object.entries(photo).forEach(([key, value], index) => {
-            if (value) {
-              page.drawText(`- ${key}: ${value}`, {
-                x: 60,
-                y: damagePhotosStart - 20 - photoIndex * 40 - index * 20,
-                size: 12,
-              });
-            }
-          });
-        });
+      drawBoldText('Damage Photos:', 50, yPos, 16);
+      yPos -= 20;
+      if (caseItem.damagePhotos) {
+        let xPos = initialXPos;
+        let imageCount = 0;
+        for (const [key, photoUrl] of Object.entries(caseItem.damagePhotos[0])) {
+          if (key === '_id' || !photoUrl) continue;
+          await drawImage(photoUrl, xPos, yPos - imageHeight, imageWidth, imageHeight);
+          xPos += xSpacing;
+          imageCount++;
+          if (imageCount % 4 === 0) {
+            xPos = initialXPos;
+            yPos -= ySpacing;
+          }
+        }
+        if (imageCount % 4 !== 0) {
+          yPos -= ySpacing;
+        }
       }
 
-      // Save the PDF document as bytes
       const pdfBytes = await pdfDoc.save();
-
-      // Convert the PDF bytes to a base64 string
-      const pdfBase64 = Buffer.from(pdfBytes).toString("base64");
-
-      // Define the path for the PDF file
       const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
-
-      // Write the base64 string to the file
-      await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, {
+      await FileSystem.writeAsStringAsync(pdfPath, Buffer.from(pdfBytes).toString('base64'), {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert("Sharing is not available on this platform");
+        Alert.alert('Sharing is not available on this platform');
         return;
       }
 
-      // Share the PDF file
       await Sharing.shareAsync(pdfPath, {
-        mimeType: "application/pdf",
-        dialogTitle: "Share PDF",
+        mimeType: 'application/pdf',
+        dialogTitle: 'Share PDF',
       });
     } catch (error) {
-      console.error("Error creating PDF:", error);
-      Alert.alert("Error", "Failed to create or share PDF. Please try again.");
+      console.error('Error creating PDF:', error);
+      Alert.alert('Error', 'Failed to create or share PDF. Please try again.');
     }
   };
+
+
+
 
   const renderCase = ({ item, index }) => (
     <Shadow distance={5} startColor="rgba(0, 0, 0, 0.05)" offset={[0, 5]}>
@@ -294,14 +323,17 @@ const MyCases = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.pageTitle}>My Cases</Text>
-      <FlatList
-        data={cases}
-        renderItem={renderCase}
-        keyExtractor={(item) => item._id.toString()}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#E93382" />
+      ) : (
+        <FlatList
+          data={cases}
+          renderItem={renderCase}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -310,28 +342,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    paddingTop: 16,
-  },
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#E93382",
-    textAlign: "center",
-    marginBottom: 16,
+    padding: 16,
   },
   listContent: {
-    alignItems: "center",
+    paddingVertical: 8,
   },
   caseContainer: {
     marginBottom: 20,
     borderRadius: 12,
     backgroundColor: "#fff",
     overflow: "hidden",
-    width: "110%",
+    width: width - 32, // Full width with padding
     alignSelf: "center",
   },
   caseContent: {
-    padding: 35,
+    padding: 16,
   },
   caseNumberContainer: {
     paddingVertical: 8,
@@ -373,86 +398,27 @@ const styles = StyleSheet.create({
   },
   viewDetailsButton: {
     backgroundColor: "#E93382",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    marginRight: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
   viewDetailsText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
   },
   shareButton: {
     backgroundColor: "#007386",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 10,
   },
   shareButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  noCasesWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  noCasesWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  noCasesWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noCasesContainer: {
-    width: "80%",
-    aspectRatio: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    borderWidth: 2,
-    borderColor: "#FF6B6B",
-    borderRadius: 15,
-    backgroundColor: "rgba(255, 107, 107, 0.1)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  noCasesText: {
-    color: "#E93382",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });
 
