@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  Linking, // Import Linking
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HeaderComponent from "../cmps/HeaderComponent.js";
@@ -38,10 +39,10 @@ const HomePage = ({ navigation }) => {
 
   const goToCaseScreen = () => {
     if (loggedInUserID) {
-      console.log("USER")
+      console.log("USER");
       navigation.navigate("Create Case", { userData: { userId: loggedInUserID } });
     } else {
-      console.log("GUEST")
+      console.log("GUEST");
       navigation.navigate("Guest Onboarding");
     }
   };
@@ -64,7 +65,10 @@ const HomePage = ({ navigation }) => {
   );
 
   const handleSOS = () => {
-    Alert.alert("SOS Triggered!");
+    const phoneNumber = "100";
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) =>
+      console.error("Failed to make call: ", err)
+    );
   };
 
   const hideDialog = () => {
