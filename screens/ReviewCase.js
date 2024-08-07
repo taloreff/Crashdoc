@@ -375,15 +375,17 @@ const ReviewCase = ({ route, navigation }) => {
         prevButton={<Text style={styles.swiperButton}>‹</Text>}
         paginationStyle={styles.paginationStyle}
       >
-        {items.map((item, index) => (
-          <View style={styles.slide} key={index}>
-            <Image
-              source={{ uri: item }}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          </View>
-        ))}
+        {items.map((item, index) =>
+          item && item.trim() !== "" ? (
+            <View style={styles.slide} key={index}>
+              <Image
+                source={{ uri: item }}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </View>
+          ) : null
+        )}
       </Swiper>
     </View>
   );
