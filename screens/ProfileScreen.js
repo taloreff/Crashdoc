@@ -82,37 +82,42 @@ const ProfileScreen = ({ navigation }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.6, // Reduced quality for faster upload
     });
 
     if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setProfileImage({ uri }); // Display image immediately
       setUploading(true);
-      try {
-        const uri = result.assets[0].uri;
-        const base64Img = await fetch(uri)
-          .then((response) => response.blob())
-          .then(
-            (blob) =>
-              new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              })
-          );
+      uploadProfileImage(uri); // Upload in the background
+    }
+  };
 
-        const uploadedImage = await uploadService.uploadImg(base64Img);
-        setProfileImage({ uri: uploadedImage.secure_url });
-        setProfilePic(uploadedImage.secure_url);
-      } catch (error) {
-        Alert.alert(
-          "Upload Error",
-          "Failed to upload the image. Please try again."
+  const uploadProfileImage = async (uri) => {
+    try {
+      const base64Img = await fetch(uri)
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            })
         );
-        console.log("Upload Error:", error);
-      } finally {
-        setUploading(false);
-      }
+
+      const uploadedImage = await uploadService.uploadImg(base64Img);
+      setProfileImage({ uri: uploadedImage.secure_url });
+      setProfilePic(uploadedImage.secure_url);
+    } catch (error) {
+      Alert.alert(
+        "Upload Error",
+        "Failed to upload the image. Please try again."
+      );
+      console.log("Upload Error:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -160,15 +165,17 @@ const ProfileScreen = ({ navigation }) => {
             const result = await ImagePicker.launchCameraAsync({
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality for faster upload
             });
 
             if (!result.canceled) {
+              const imageUri = result.assets[0].uri;
               const stateKey = documentTypeMapping[docType];
               setDocuments((prevDocuments) => ({
                 ...prevDocuments,
-                [stateKey]: result.assets[0].uri,
-              }));
+                [stateKey]: imageUri,
+              })); // Display image immediately
+              uploadDocument(docType, imageUri); // Upload in the background
             }
           },
         },
@@ -179,15 +186,17 @@ const ProfileScreen = ({ navigation }) => {
               mediaTypes: ImagePicker.MediaTypeOptions.All,
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality for faster upload
             });
 
             if (!result.canceled) {
+              const imageUri = result.assets[0].uri;
               const stateKey = documentTypeMapping[docType];
               setDocuments((prevDocuments) => ({
                 ...prevDocuments,
-                [stateKey]: result.assets[0].uri,
-              }));
+                [stateKey]: imageUri,
+              })); // Display image immediately
+              uploadDocument(docType, imageUri); // Upload in the background
             }
           },
         },
@@ -198,6 +207,35 @@ const ProfileScreen = ({ navigation }) => {
       ],
       { cancelable: true }
     );
+  };
+
+  const uploadDocument = async (docType, imageUri) => {
+    try {
+      const base64Img = await fetch(imageUri)
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            })
+        );
+
+      const uploadedImage = await uploadService.uploadImg(base64Img);
+      const stateKey = documentTypeMapping[docType];
+      setDocuments((prevDocuments) => ({
+        ...prevDocuments,
+        [stateKey]: uploadedImage.secure_url,
+      }));
+    } catch (error) {
+      Alert.alert(
+        "Upload Error",
+        "Failed to upload the image. Please try again."
+      );
+      console.log("Upload Error:", error);
+    }
   };
 
   const requestPermissions = async () => {
@@ -295,8 +333,8 @@ const ProfileScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.profileContainer}>
             <View style={styles.profileImageContainer}>
-              {uploading ? (
-                <ActivityIndicator size="large" color="#e23680" />
+              {uploading && profileImage ? (
+                <Image source={profileImage} style={styles.profileImage} />
               ) : (
                 <Image
                   source={profileImage ? profileImage : avatarImg}

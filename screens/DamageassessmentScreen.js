@@ -13,7 +13,7 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import Swiper from "react-native-swiper";
 import client from "../backend/api/client";
-import { uploadService } from "../services/upload.service"; // Import the upload service
+import { uploadService } from "../services/upload.service";
 
 const DamageAssessmentScreen = ({ route, navigation }) => {
   const [damagePhotos, setDamagePhotos] = useState({});
@@ -176,12 +176,17 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
             const result = await ImagePicker.launchCameraAsync({
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality for faster upload
             });
 
             if (!result.canceled) {
               const imageUri = result.assets[0].uri;
-              await uploadAndSaveImage(index, imageUri);
+              const photoKey = `damagePhoto${index}`;
+              setDamagePhotos((prevPhotos) => ({
+                ...prevPhotos,
+                [photoKey]: imageUri,
+              })); // Display image immediately
+              uploadDamagePhoto(photoKey, imageUri); // Upload in the background
             }
           },
         },
@@ -192,12 +197,17 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
               mediaTypes: ImagePicker.MediaTypeOptions.All,
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality for faster upload
             });
 
             if (!result.canceled) {
               const imageUri = result.assets[0].uri;
-              await uploadAndSaveImage(index, imageUri);
+              const photoKey = `damagePhoto${index}`;
+              setDamagePhotos((prevPhotos) => ({
+                ...prevPhotos,
+                [photoKey]: imageUri,
+              })); // Display image immediately
+              uploadDamagePhoto(photoKey, imageUri); // Upload in the background
             }
           },
         },
@@ -210,10 +220,10 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     );
   };
 
-  const uploadAndSaveImage = async (index, imageUri) => {
+  const uploadDamagePhoto = async (photoKey, imageUri) => {
     setUploading((prevUploading) => ({
       ...prevUploading,
-      [`damagePhoto${index}`]: true,
+      [photoKey]: true,
     }));
 
     try {
@@ -230,9 +240,10 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         );
 
       const uploadedImage = await uploadService.uploadImg(base64Img);
+      // Update the state to the uploaded URL
       setDamagePhotos((prevPhotos) => ({
         ...prevPhotos,
-        [`damagePhoto${index}`]: uploadedImage.secure_url,
+        [photoKey]: uploadedImage.secure_url,
       }));
     } catch (error) {
       Alert.alert(
@@ -243,7 +254,7 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
     } finally {
       setUploading((prevUploading) => ({
         ...prevUploading,
-        [`damagePhoto${index}`]: false,
+        [photoKey]: false,
       }));
     }
   };
@@ -287,13 +298,13 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                         handlePhotoUpload(docType, pairIndex * 2 + index + 1)
                       }
                     >
-                      {uploading[photoKey] ? (
-                        <ActivityIndicator size="small" color="#e23680" />
-                      ) : damagePhotos[photoKey] ? (
+                      {damagePhotos[photoKey] ? (
                         <Image
                           source={{ uri: damagePhotos[photoKey] }}
                           style={styles.documentImage}
                         />
+                      ) : uploading[photoKey] ? (
+                        <ActivityIndicator size="small" color="#e23680" />
                       ) : (
                         <>
                           <View style={styles.uploadIconContainer}>

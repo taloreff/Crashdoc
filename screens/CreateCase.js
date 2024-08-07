@@ -41,6 +41,14 @@ const CreateCase = ({ route, navigation }) => {
     "ADDITIONAL DOCUMENTS": "additionalDocuments",
   };
 
+  const handleDocumentUpload = (docType, imageUri) => {
+    const stateKey = documentTypeMapping[docType];
+    setDocuments((prevDocuments) => ({
+      ...prevDocuments,
+      [stateKey]: imageUri, // Display image immediately
+    }));
+  };
+
   const uploadAndSaveImage = async (docType, imageUri) => {
     try {
       const base64Img = await fetch(imageUri)
@@ -193,7 +201,7 @@ const CreateCase = ({ route, navigation }) => {
       inputFields={inputFields}
       documentTypes={documentTypes}
       documents={documents}
-      onUpload={uploadAndSaveImage}
+      onUpload={handleDocumentUpload}
       documentTypeMapping={documentTypeMapping}
       disabled={
         !thirdPartyId ||

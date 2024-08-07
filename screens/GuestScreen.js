@@ -1,5 +1,3 @@
-// GuestScreen.js
-
 import React, { useState } from "react";
 import FormContainer from "../cmps/FormContainer";
 import {

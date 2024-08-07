@@ -1,5 +1,3 @@
-// DocumentUploader.js
-
 import React, { useState } from "react";
 import {
   View,
@@ -12,7 +10,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { uploadService } from "../services/upload.service"; // Centralized upload service
+import { uploadService } from "../services/upload.service";
 
 const DocumentUploader = ({
   docType,
@@ -20,7 +18,8 @@ const DocumentUploader = ({
   onUpload,
   documentTypeMapping,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [localImageUri, setLocalImageUri] = useState(documentUri);
 
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
@@ -53,12 +52,13 @@ const DocumentUploader = ({
             const result = await ImagePicker.launchCameraAsync({
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality to speed up upload
             });
 
             if (!result.canceled) {
               const imageUri = result.assets[0].uri;
-              await uploadAndSaveImage(docType, imageUri);
+              setLocalImageUri(imageUri); // Display image immediately
+              uploadImage(docType, imageUri); // Upload in the background
             }
           },
         },
@@ -69,12 +69,13 @@ const DocumentUploader = ({
               mediaTypes: ImagePicker.MediaTypeOptions.All,
               allowsEditing: true,
               aspect: [4, 3],
-              quality: 1,
+              quality: 0.6, // Reduced quality to speed up upload
             });
 
             if (!result.canceled) {
               const imageUri = result.assets[0].uri;
-              await uploadAndSaveImage(docType, imageUri);
+              setLocalImageUri(imageUri); // Display image immediately
+              uploadImage(docType, imageUri); // Upload in the background
             }
           },
         },
@@ -87,24 +88,13 @@ const DocumentUploader = ({
     );
   };
 
-  const uploadAndSaveImage = async (docType, imageUri) => {
-    setLoading(true);
+  const uploadImage = async (docType, imageUri) => {
+    setUploading(true);
     try {
-      const base64Img = await fetch(imageUri)
-        .then((response) => response.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        );
-
+      const base64Img = await convertUriToBase64(imageUri);
       const uploadedImage = await uploadService.uploadImg(base64Img);
       console.log("Uploaded Image:", uploadedImage.secure_url);
-      onUpload(docType, uploadedImage.secure_url);
+      onUpload(docType, uploadedImage.secure_url); // Update the document URL after upload
     } catch (error) {
       Alert.alert(
         "Upload Error",
@@ -112,20 +102,29 @@ const DocumentUploader = ({
       );
       console.log("Upload Error:", error);
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
+  };
+
+  const convertUriToBase64 = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   };
 
   return (
     <TouchableOpacity
       style={styles.documentButton}
       onPress={handleDocumentUpload}
-      disabled={loading}
+      disabled={uploading}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color="#e23680" />
-      ) : documentUri && documentTypeMapping && documentTypeMapping[docType] ? (
-        <Image source={{ uri: documentUri }} style={styles.documentImage} />
+      {localImageUri ? (
+        <Image source={{ uri: localImageUri }} style={styles.documentImage} />
       ) : (
         <>
           <View style={styles.uploadIconContainer}>
@@ -133,6 +132,13 @@ const DocumentUploader = ({
           </View>
           <Text style={styles.documentButtonText}>{docType}</Text>
         </>
+      )}
+      {uploading && (
+        <ActivityIndicator
+          style={styles.uploadIndicator}
+          size="small"
+          color="#e23680"
+        />
       )}
     </TouchableOpacity>
   );
@@ -174,6 +180,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 5,
+  },
+  uploadIndicator: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -10,
+    marginLeft: -10,
   },
 });
 
