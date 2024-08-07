@@ -27,7 +27,7 @@ const CaseDetails = ({ route }) => {
       try {
         const response = await client.get(`/case/${caseId}`);
         setCaseDetails(response.data);
-
+        console.log("Case details:", response.data);
       } catch (error) {
         console.error("Error fetching case details:", error);
       } finally {
@@ -52,15 +52,17 @@ const CaseDetails = ({ route }) => {
         prevButton={<Text style={styles.swiperButton}>‹</Text>}
         paginationStyle={styles.paginationStyle}
       >
-        {items.map((item, index) => (
-          <View style={styles.slide} key={index}>
-            <Image
-              source={{ uri: item }}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          </View>
-        ))}
+        {items
+          .filter((item) => item && item.trim() !== "") // Ensure non-empty URLs
+          .map((item, index) => (
+            <View style={styles.slide} key={index}>
+              <Image
+                source={{ uri: item }}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </View>
+          ))}
       </Swiper>
     </View>
   );
@@ -117,6 +119,7 @@ const CaseDetails = ({ route }) => {
       </SafeAreaView>
     );
   }
+
   const myDetails = caseDetails.userInfo;
   const thirdPartyDetails = {
     userId: caseDetails.thirdPartyId,
@@ -163,15 +166,25 @@ const CaseDetails = ({ route }) => {
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {activeTab === "myDetails" ? renderDetails(myDetails) : renderDetails(thirdPartyDetails)}
-        {renderSwiperContent(
-          caseDetails.documents.flatMap((doc) => Object.values(doc)),
-          "Documents"
-        )}
-        {renderSwiperContent(
-          caseDetails.damagePhotos.flatMap((photo) => Object.values(photo)),
-          "Damage Photos"
-        )}
+        {activeTab === "myDetails"
+          ? renderDetails(myDetails)
+          : renderDetails(thirdPartyDetails)}
+        {console.log("Case details user info documents:", caseDetails.userInfo.documents)}
+        {activeTab === "myDetails"
+          ? caseDetails.userInfo.documents && renderSwiperContent(
+            Object.values(caseDetails.userInfo.documents).filter(Boolean),
+            "My Documents"
+          )
+          : caseDetails.documents && caseDetails.documents.length > 0 && renderSwiperContent(
+            caseDetails.documents.flatMap((doc) => Object.values(doc)),
+            "Third Party Documents"
+          )}
+        {caseDetails.damagePhotos &&
+          caseDetails.damagePhotos.length > 0 &&
+          renderSwiperContent(
+            caseDetails.damagePhotos.flatMap((photo) => Object.values(photo)),
+            "Damage Photos"
+          )}
       </ScrollView>
     </SafeAreaView>
   );
