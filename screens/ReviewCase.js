@@ -21,6 +21,8 @@ import { Buffer } from 'buffer';
 const ReviewCase = ({ route, navigation }) => {
   const [userOnboardingInfo, setUserOnboardingInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const {
     userId,
@@ -58,6 +60,7 @@ const ReviewCase = ({ route, navigation }) => {
   };
 
   const handleCaseSubmit = async () => {
+    setSubmitting(true);
     try {
       let data;
       if (guestPhoneNumber) {
@@ -94,6 +97,8 @@ const ReviewCase = ({ route, navigation }) => {
       navigation.navigate("Home Page");
     } catch (error) {
       console.error("Error creating case:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -112,6 +117,7 @@ const ReviewCase = ({ route, navigation }) => {
   }
 
   const createPDFAndShare = async () => {
+    setSharing(true);
     var caseItem;
     if (guestPhoneNumber) {
       caseItem = {
@@ -324,6 +330,8 @@ const ReviewCase = ({ route, navigation }) => {
     } catch (error) {
       console.error('Error creating PDF:', error);
       Alert.alert('Error', 'Failed to create or share PDF. Please try again.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -434,13 +442,31 @@ const ReviewCase = ({ route, navigation }) => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleCaseSubmit}>
-        <Text style={styles.submitButtonText}>Submit Case</Text>
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={handleCaseSubmit}
+        disabled={submitting}
+      >
+        {submitting ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit Case</Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.shareButton} onPress={createPDFAndShare}>
-        <Feather name="share" size={20} color="#fff" />
-        <Text style={styles.shareButtonText}>Share PDF</Text>
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={createPDFAndShare}
+        disabled={sharing}
+      >
+        {sharing ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <>
+            <Feather name="share" size={20} color="#fff" />
+            <Text style={styles.shareButtonText}>Share PDF</Text>
+          </>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );

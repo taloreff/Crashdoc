@@ -1,6 +1,6 @@
 // DocumentUploader.js
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -8,6 +8,7 @@ import {
   Text,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -19,6 +20,8 @@ const DocumentUploader = ({
   onUpload,
   documentTypeMapping,
 }) => {
+  const [loading, setLoading] = useState(false);
+
   const requestPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
     const mediaLibraryStatus =
@@ -85,6 +88,7 @@ const DocumentUploader = ({
   };
 
   const uploadAndSaveImage = async (docType, imageUri) => {
+    setLoading(true);
     try {
       const base64Img = await fetch(imageUri)
         .then((response) => response.blob())
@@ -107,6 +111,8 @@ const DocumentUploader = ({
         "Failed to upload the image. Please try again."
       );
       console.log("Upload Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,8 +120,11 @@ const DocumentUploader = ({
     <TouchableOpacity
       style={styles.documentButton}
       onPress={handleDocumentUpload}
+      disabled={loading}
     >
-      {documentUri && documentTypeMapping && documentTypeMapping[docType] ? (
+      {loading ? (
+        <ActivityIndicator size="small" color="#e23680" />
+      ) : documentUri && documentTypeMapping && documentTypeMapping[docType] ? (
         <Image source={{ uri: documentUri }} style={styles.documentImage} />
       ) : (
         <>
