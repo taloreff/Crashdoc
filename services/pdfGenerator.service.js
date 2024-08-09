@@ -1,93 +1,96 @@
-// pdfService.js
-
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
+import * as ImageManipulator from 'expo-image-manipulator';
+
+const imageCache = new Map();
 
 const fetchImageAsArrayBuffer = async (imageUrl) => {
     try {
+        if (imageCache.has(imageUrl)) {
+            return imageCache.get(imageUrl);
+        }
+
         const response = await fetch(imageUrl);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const arrayBuffer = await response.arrayBuffer();
+        imageCache.set(imageUrl, arrayBuffer);
         return arrayBuffer;
     } catch (error) {
         console.error("Error fetching image:", error);
-        throw error; // Re-throw to handle it in the calling function
+        throw error;
     }
+};
+
+const convertAndResizeImage = async (imageUri) => {
+    const result = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [{ resize: { width: 300 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    return result.uri;
 };
 
 export const createAndSharePDF = async (caseItem) => {
     try {
         const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([600, 1000]); // Increase height as needed
-        const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-        const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const page = pdfDoc.addPage([600, 1000]);
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
         // Fetch and embed the logo
-        const logoUrl =
-            "https://res.cloudinary.com/dd7nwvjli/image/upload/v1722956071/glnuan24jxpdjzpclak1.jpg";
+        const logoUrl = "https://res.cloudinary.com/dd7nwvjli/image/upload/v1722956071/glnuan24jxpdjzpclak1.jpg";
         const logoImageBytes = await fetchImageAsArrayBuffer(logoUrl);
         const logoImage = await pdfDoc.embedJpg(logoImageBytes);
 
-        // Draw the logo in the top right corner
+        // Draw the logo
         page.drawImage(logoImage, {
-            x: page.getWidth() - 220, // Adjust according to your layout needs
-            y: page.getHeight() - 120, // Adjust according to your layout needs
+            x: page.getWidth() - 220,
+            y: page.getHeight() - 120,
             width: 200,
             height: 100,
         });
 
-        const drawBoldText = (text, x, y, size) => {
-            page.drawText(text, { x, y, size, font: helveticaBold });
+        const drawText = (text, x, y, size, isBold = false) => {
+            page.drawText(text, {
+                x, y, size,
+                font: font,
+                color: isBold ? rgb(0, 0, 0) : rgb(0.3, 0.3, 0.3)
+            });
         };
 
-        const drawText = (text, x, y, size) => {
-            page.drawText(text, { x, y, size, font: helvetica });
-        };
-
-        // Draw Image
+        // Optimized drawImage function
         const drawImage = async (imageUrl, x, y, width, height) => {
             if (!imageUrl) {
                 console.log("Attempted to load an image with an empty URL");
                 return;
             }
             try {
-                const imageBytes = await fetchImageAsArrayBuffer(imageUrl);
-
-                // Check if the image is JPEG or PNG
-                let image;
-                if (imageUrl.endsWith(".png")) {
-                    image = await pdfDoc.embedPng(imageBytes);
-                } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
-                    image = await pdfDoc.embedJpg(imageBytes);
-                } else {
-                    console.warn(`Unsupported image format for URL: ${imageUrl}`);
-                    return;
-                }
-
-                page.drawImage(image, { x, y, width, height });
+                const convertedImageUrl = await convertAndResizeImage(imageUrl);
+                const imageBytes = await fetchImageAsArrayBuffer(convertedImageUrl);
+                const image = await pdfDoc.embedJpg(imageBytes);
+                page.drawImage(image, { x, y, width, height, quality: 0.8 });
             } catch (error) {
                 console.error(`Failed to load image from URL: ${imageUrl}`, error);
             }
         };
 
         // Layout setup
-        let yPos = 950; // Initial y position for the page
-        const initialXPos = 50; // Starting x position for the first image
+        let yPos = 950;
+        const initialXPos = 50;
         const imageWidth = 100;
         const imageHeight = 100;
-        const xSpacing = 120; // Space between images horizontally
-        const ySpacing = 120; // Space between rows of images
+        const xSpacing = 120;
+        const ySpacing = 120;
 
         // Title
-        drawBoldText("My Case", 50, yPos, 24);
+        drawText("My Case", 50, yPos, 24, true);
         yPos -= 40;
 
         // User Information
-        drawBoldText("User Information:", 50, yPos, 16);
+        drawText("User Information:", 50, yPos, 16, true);
         yPos -= 20;
         const userInfo = [
             { label: "User ID", value: caseItem.userInfo.userId },
@@ -104,38 +107,27 @@ export const createAndSharePDF = async (caseItem) => {
         yPos -= 10;
 
         // User Documents
-        drawBoldText("Documents:", 50, yPos, 16);
+        drawText("Documents:", 50, yPos, 16, true);
         yPos -= 20;
         if (caseItem.userInfo && caseItem.userInfo.documents) {
-            let xPos = initialXPos;
-            let imageCount = 0;
-            for (const [key, docUrl] of Object.entries(
-                caseItem.userInfo.documents
-            )) {
-                if (key === "_id" || !docUrl) continue;
-                await drawImage(
-                    docUrl,
-                    xPos,
-                    yPos - imageHeight,
-                    imageWidth,
-                    imageHeight
+            const documentPromises = Object.entries(caseItem.userInfo.documents)
+                .filter(([key, docUrl]) => key !== "_id" && docUrl)
+                .map(([key, docUrl], index) =>
+                    drawImage(
+                        docUrl,
+                        initialXPos + (index % 4) * xSpacing,
+                        yPos - Math.floor(index / 4) * ySpacing - imageHeight,
+                        imageWidth,
+                        imageHeight
+                    )
                 );
-                xPos += xSpacing;
-                imageCount++;
-                if (imageCount % 4 === 0) {
-                    // Move to the next row after 4 images
-                    xPos = initialXPos;
-                    yPos -= ySpacing;
-                }
-            }
-            if (imageCount % 4 !== 0) {
-                yPos -= ySpacing; // Move to the next section if there are remaining images
-            }
+            await Promise.all(documentPromises);
+            yPos -= Math.ceil(documentPromises.length / 4) * ySpacing;
         }
 
         // Third Party Information
         yPos -= 60;
-        drawBoldText("Third Party Information:", 50, yPos, 16);
+        drawText("Third Party Information:", 50, yPos, 16, true);
         yPos -= 20;
         const thirdPartyInfo = [
             { label: "Third Party ID", value: caseItem.thirdPartyId },
@@ -152,111 +144,47 @@ export const createAndSharePDF = async (caseItem) => {
         yPos -= 10;
 
         // Third Party Documents
-        drawBoldText("Documents:", 50, yPos, 16);
+        drawText("Documents:", 50, yPos, 16, true);
         yPos -= 20;
-        if (Array.isArray(caseItem.documents)) {
-            let xPos = initialXPos;
-            let imageCount = 0;
-            for (const [key, docUrl] of Object.entries(caseItem.documents[0])) {
-                if (key === "_id" || !docUrl) continue;
-                await drawImage(
+        const documents = Array.isArray(caseItem.documents) ? caseItem.documents[0] : caseItem.documents;
+        const documentPromises = Object.entries(documents)
+            .filter(([key, docUrl]) => key !== "_id" && docUrl)
+            .map(([key, docUrl], index) =>
+                drawImage(
                     docUrl,
-                    xPos,
-                    yPos - imageHeight,
+                    initialXPos + (index % 4) * xSpacing,
+                    yPos - Math.floor(index / 4) * ySpacing - imageHeight,
                     imageWidth,
                     imageHeight
-                );
-                xPos += xSpacing;
-                imageCount++;
-                if (imageCount % 4 === 0) {
-                    xPos = initialXPos;
-                    yPos -= ySpacing;
-                }
-            }
-            if (imageCount % 4 !== 0) {
-                yPos -= ySpacing;
-            }
-        } else {
-            let xPos = initialXPos;
-            let imageCount = 0;
-            for (const [key, docUrl] of Object.entries(caseItem.documents)) {
-                if (key === "_id" || !docUrl) continue;
-                await drawImage(
-                    docUrl,
-                    xPos,
-                    yPos - imageHeight,
-                    imageWidth,
-                    imageHeight
-                );
-                xPos += xSpacing;
-                imageCount++;
-                if (imageCount % 4 === 0) {
-                    xPos = initialXPos;
-                    yPos -= ySpacing;
-                }
-            }
-            if (imageCount % 4 !== 0) {
-                yPos -= ySpacing;
-            }
-        }
+                )
+            );
+        await Promise.all(documentPromises);
+        yPos -= Math.ceil(documentPromises.length / 4) * ySpacing;
 
         // Damage Photos
-        drawBoldText("Damage Photos:", 50, yPos, 16);
+        drawText("Damage Photos:", 50, yPos, 16, true);
         yPos -= 20;
-        if (Array.isArray(caseItem.damagePhotos)) {
-            let xPos = initialXPos;
-            let imageCount = 0;
-            for (const [key, photoUrl] of Object.entries(caseItem.damagePhotos[0])) {
-                if (key === "_id" || !photoUrl) continue;
-                await drawImage(
+        const damagePhotos = Array.isArray(caseItem.damagePhotos) ? caseItem.damagePhotos[0] : caseItem.damagePhotos;
+        const photoPromises = Object.entries(damagePhotos)
+            .filter(([key, photoUrl]) => key !== "_id" && photoUrl)
+            .map(([key, photoUrl], index) =>
+                drawImage(
                     photoUrl,
-                    xPos,
-                    yPos - imageHeight,
+                    initialXPos + (index % 4) * xSpacing,
+                    yPos - Math.floor(index / 4) * ySpacing - imageHeight,
                     imageWidth,
                     imageHeight
-                );
-                xPos += xSpacing;
-                imageCount++;
-                if (imageCount % 4 === 0) {
-                    xPos = initialXPos;
-                    yPos -= ySpacing;
-                }
-            }
-            if (imageCount % 4 !== 0) {
-                yPos -= ySpacing;
-            }
-        } else {
-            let xPos = initialXPos;
-            let imageCount = 0;
-            for (const [key, photoUrl] of Object.entries(caseItem.damagePhotos)) {
-                if (key === "_id" || !photoUrl) continue;
-                await drawImage(
-                    photoUrl,
-                    xPos,
-                    yPos - imageHeight,
-                    imageWidth,
-                    imageHeight
-                );
-                xPos += xSpacing;
-                imageCount++;
-                if (imageCount % 4 === 0) {
-                    xPos = initialXPos;
-                    yPos -= ySpacing;
-                }
-            }
-            if (imageCount % 4 !== 0) {
-                yPos -= ySpacing;
-            }
-        }
+                )
+            );
+        await Promise.all(photoPromises);
 
+        // Generate PDF
         const pdfBytes = await pdfDoc.save();
         const pdfPath = `${FileSystem.documentDirectory}case-info.pdf`;
         await FileSystem.writeAsStringAsync(
             pdfPath,
             Buffer.from(pdfBytes).toString("base64"),
-            {
-                encoding: FileSystem.EncodingType.Base64,
-            }
+            { encoding: FileSystem.EncodingType.Base64 }
         );
 
         if (!(await Sharing.isAvailableAsync())) {
@@ -268,6 +196,7 @@ export const createAndSharePDF = async (caseItem) => {
             mimeType: "application/pdf",
             dialogTitle: "Share PDF",
         });
+
     } catch (error) {
         console.error("Error creating PDF:", error);
         Alert.alert("Error", "Failed to create or share PDF. Please try again.");

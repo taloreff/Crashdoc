@@ -26,8 +26,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "expo": "^51.0.0",
+    "expo-asset": "~10.0.10",
     "expo-constants": "~16.0.1",
     "expo-file-system": "~17.0.1",
+    "expo-image-manipulator": "^12.0.5",
     "expo-image-picker": "~15.0.4",
     "expo-linear-gradient": "^13.0.2",
     "expo-location": "~17.0.1",
@@ -65,8 +67,7 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-web": "~0.19.6",
     "redis": "^4.6.14",
-    "typescript": "~5.3.3",
-    "expo-asset": "~10.0.10"
+    "typescript": "~5.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

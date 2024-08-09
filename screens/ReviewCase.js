@@ -128,9 +128,10 @@ const ReviewCase = ({ route, navigation }) => {
           documents,
           damagePhotos,
         };
-      await createAndSharePDF(caseItem); // Use the service
+      await createAndSharePDF(caseItem);
     } finally {
       setSharing(false);
+
     }
   };
 
