@@ -104,34 +104,33 @@ const ReviewCase = ({ route, navigation }) => {
     try {
       const caseItem = guestPhoneNumber
         ? {
-          userId,
-          guestPhoneNumber,
-          guestVehicleNumber,
-          guestLicenseNumber,
-          guestVehicleModel,
-          guestDocuments,
-          thirdPartyId,
-          phoneNumber,
-          vehicleNumber,
-          licenseNumber,
-          vehicleModel,
-          documents,
-          damagePhotos,
-        }
+            userId,
+            guestPhoneNumber,
+            guestVehicleNumber,
+            guestLicenseNumber,
+            guestVehicleModel,
+            guestDocuments,
+            thirdPartyId,
+            phoneNumber,
+            vehicleNumber,
+            licenseNumber,
+            vehicleModel,
+            documents,
+            damagePhotos,
+          }
         : {
-          userInfo: userOnboardingInfo,
-          thirdPartyId,
-          phoneNumber,
-          vehicleNumber,
-          licenseNumber,
-          vehicleModel,
-          documents,
-          damagePhotos,
-        };
+            userInfo: userOnboardingInfo,
+            thirdPartyId,
+            phoneNumber,
+            vehicleNumber,
+            licenseNumber,
+            vehicleModel,
+            documents,
+            damagePhotos,
+          };
       await createAndSharePDF(caseItem);
     } finally {
       setSharing(false);
-
     }
   };
 
@@ -204,15 +203,15 @@ const ReviewCase = ({ route, navigation }) => {
       {userOnboardingInfo
         ? renderDetails(userOnboardingInfo, "User Information")
         : renderDetails(
-          {
-            userId,
-            phoneNumber: guestPhoneNumber,
-            vehicleNumber: guestVehicleNumber,
-            licenseNumber: guestLicenseNumber,
-            vehicleModel: guestVehicleModel,
-          },
-          "Guest Information"
-        )}
+            {
+              userId,
+              phoneNumber: guestPhoneNumber,
+              vehicleNumber: guestVehicleNumber,
+              licenseNumber: guestLicenseNumber,
+              vehicleModel: guestVehicleModel,
+            },
+            "Guest Information"
+          )}
       {renderDetails(
         {
           userId: thirdPartyId,
@@ -226,9 +225,9 @@ const ReviewCase = ({ route, navigation }) => {
 
       {userOnboardingInfo
         ? renderSwiperContent(
-          Object.values(userOnboardingInfo.documents),
-          "User Documents"
-        )
+            Object.values(userOnboardingInfo.documents),
+            "User Documents"
+          )
         : renderSwiperContent(Object.values(guestDocuments), "Guest Documents")}
       {renderSwiperContent(Object.values(documents), "Third Party Documents")}
       {renderSwiperContent(Object.values(damagePhotos), "Damage Photos")}
@@ -273,6 +272,7 @@ const ReviewCase = ({ route, navigation }) => {
     </ScrollView>
   );
 };
+createAndSharePDF;
 
 const styles = StyleSheet.create({
   container: {
