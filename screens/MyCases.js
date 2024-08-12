@@ -51,74 +51,68 @@ const MyCases = () => {
   }, []);
 
   const renderCase = ({ item, index }) => (
-    <Shadow distance={5} startColor="rgba(0, 0, 0, 0.05)" offset={[0, 5]}>
+    <Shadow distance={5} startColor="rgba(0, 0, 0, 0.1)" offset={[0, 3]}>
       <View style={styles.caseContainer}>
         <LinearGradient
-          colors={["#FF6B6B", "#E93382"]}
+          colors={["#3A1C71", "#D76D77", "#FFAF7B"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.caseNumberContainer}
+          style={styles.caseGradient}
         >
-          <Text style={styles.caseNumber}>{index + 1}</Text>
+          <View style={styles.caseContent}>
+            <View style={styles.caseHeader}>
+              <Text style={styles.caseNumber}>Case #{index + 1}</Text>
+              <Text style={styles.caseDate}>
+                {new Date(item.createdAt).toLocaleString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
+            <View style={styles.vehicleInfoContainer}>
+              <MaterialCommunityIcons name="car" size={24} color="#fff" />
+              <Text style={styles.caseVehicleNumber}>{item.vehicleNumber}</Text>
+            </View>
+            <Image
+              source={{
+                uri:
+                  item.damagePhotos && item.damagePhotos.length > 0
+                    ? item.damagePhotos[0].damagePhoto1
+                    : item.documents[0].driversLicense,
+              }}
+              style={styles.caseImage}
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() =>
+                  navigation.navigate("Case Details", { caseId: item._id })
+                }
+              >
+                <Text style={styles.buttonText}>View Details</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => createAndSharePDF(item)}
+              >
+                <Feather name="share" size={20} color="#fff" />
+                <Text style={styles.buttonText}>Share PDF</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </LinearGradient>
-        <View style={styles.caseContent}>
-          <View style={styles.caseHeader}>
-            <MaterialCommunityIcons
-              name="calendar-clock"
-              size={18}
-              color="#666"
-            />
-            <Text style={styles.caseDate}>
-              {new Date(item.createdAt).toLocaleString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Text>
-          </View>
-          <View style={styles.caseHeader}>
-            <MaterialCommunityIcons name="car" size={18} color="#666" />
-            <Text style={styles.caseVehicleNumber}>{item.vehicleNumber}</Text>
-          </View>
-          {item.damagePhotos && item.damagePhotos.length > 0 ? (
-            <Image
-              source={{ uri: item.damagePhotos[0].damagePhoto1 }}
-              style={styles.caseImage}
-            />
-          ) : (
-            <Image
-              source={{ uri: item.documents[0].driversLicense }}
-              style={styles.caseImage}
-            />
-          )}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.viewDetailsButton}
-              onPress={() =>
-                navigation.navigate("Case Details", { caseId: item._id })
-              }
-            >
-              <Text style={styles.viewDetailsText}>View Details</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.shareButton}
-              onPress={() => createAndSharePDF(item)} // Use the service
-            >
-              <Feather name="share" size={20} color="#fff" />
-              <Text style={styles.shareButtonText}>Share PDF</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     </Shadow>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>My Cases</Text>
       {loading ? (
-        <ActivityIndicator size="large" color="#E93382" />
+        <ActivityIndicator size="large" color="#D76D77" />
       ) : (
         <FlatList
           data={cases}
@@ -135,84 +129,81 @@ const MyCases = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 16,
+    backgroundColor: "#f0f2f5",
+    paddingHorizontal: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    marginVertical: 16,
+    textAlign: "center",
   },
   listContent: {
-    paddingVertical: 8,
+    paddingBottom: 16,
   },
   caseContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
     borderRadius: 12,
-    backgroundColor: "#fff",
-    overflow: "hidden",
-    width: width - 32, // Full width with padding
-    alignSelf: "center",
+    width: width - 32, // Full width minus padding
+  },
+  caseGradient: {
+    borderRadius: 12,
   },
   caseContent: {
     padding: 16,
   },
-  caseNumberContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+  caseHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
   },
   caseNumber: {
-    color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#fff",
   },
-  caseHeader: {
+  caseDate: {
+    fontSize: 14,
+    color: "#fff",
+  },
+  vehicleInfoContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
   },
-  caseDate: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 8,
-  },
   caseVehicleNumber: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: "#fff",
     marginLeft: 8,
   },
   caseImage: {
     width: "100%",
-    height: 200,
+    height: 180,
     borderRadius: 8,
-    marginTop: 12,
+    marginBottom: 12,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 12,
   },
-  viewDetailsButton: {
-    backgroundColor: "#E93382",
+  button: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  viewDetailsText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  shareButton: {
-    backgroundColor: "#007386",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    flex: 0.48, // This makes the buttons almost as wide as the card
   },
-  shareButtonText: {
+  buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
-    marginLeft: 8,
+    marginLeft: 4,
   },
 });
 

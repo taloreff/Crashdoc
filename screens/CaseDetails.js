@@ -53,7 +53,7 @@ const CaseDetails = ({ route }) => {
         paginationStyle={styles.paginationStyle}
       >
         {items
-          .filter((item) => item && item.trim() !== "") // Ensure non-empty URLs
+          .filter((item) => item && item.trim() !== "")
           .map((item, index) => (
             <View style={styles.slide} key={index}>
               <Image
@@ -169,16 +169,22 @@ const CaseDetails = ({ route }) => {
         {activeTab === "myDetails"
           ? renderDetails(myDetails)
           : renderDetails(thirdPartyDetails)}
-        {console.log("Case details user info documents:", caseDetails.userInfo.documents)}
+        {console.log(
+          "Case details user info documents:",
+          caseDetails.userInfo.documents
+        )}
         {activeTab === "myDetails"
-          ? caseDetails.userInfo.documents && renderSwiperContent(
-            Object.values(caseDetails.userInfo.documents).filter(Boolean),
-            "My Documents"
-          )
-          : caseDetails.documents && caseDetails.documents.length > 0 && renderSwiperContent(
-            caseDetails.documents.flatMap((doc) => Object.values(doc)),
-            "Third Party Documents"
-          )}
+          ? caseDetails.userInfo.documents &&
+            renderSwiperContent(
+              Object.values(caseDetails.userInfo.documents).filter(Boolean),
+              "My Documents"
+            )
+          : caseDetails.documents &&
+            caseDetails.documents.length > 0 &&
+            renderSwiperContent(
+              caseDetails.documents.flatMap((doc) => Object.values(doc)),
+              "Third Party Documents"
+            )}
         {caseDetails.damagePhotos &&
           caseDetails.damagePhotos.length > 0 &&
           renderSwiperContent(
