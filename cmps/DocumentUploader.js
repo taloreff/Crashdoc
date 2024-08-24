@@ -123,8 +123,19 @@ const DocumentUploader = ({
       onPress={handleDocumentUpload}
       disabled={uploading}
     >
+      {uploading && (
+        <ActivityIndicator
+          style={styles.uploadIndicator}
+          size="small"
+          color="#e23680"
+        />
+      )}
       {localImageUri ? (
-        <Image source={{ uri: localImageUri }} style={styles.documentImage} />
+        <Image
+          source={{ uri: localImageUri }}
+          style={styles.documentImage}
+          resizeMode="cover"
+        />
       ) : (
         <>
           <View style={styles.uploadIconContainer}>
@@ -133,50 +144,54 @@ const DocumentUploader = ({
           <Text style={styles.documentButtonText}>{docType}</Text>
         </>
       )}
-      {uploading && (
-        <ActivityIndicator
-          style={styles.uploadIndicator}
-          size="small"
-          color="#e23680"
-        />
-      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   documentButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 95,
+    height: 95,
+    borderRadius: 55,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
     position: "relative",
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
   uploadIconContainer: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 17.5,
     backgroundColor: "#e23680",
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
     top: 2,
     right: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
   },
   uploadIcon: {
     color: "#fff",
   },
   documentImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
   documentButtonText: {
     color: "rgba(0, 0, 0, 0.6)",
-    fontSize: 12,
+    fontSize: 9.5,
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 5,
@@ -185,8 +200,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginTop: -10,
-    marginLeft: -10,
+    transform: [{ translateX: -10 }, { translateY: -10 }],
   },
 });
 
