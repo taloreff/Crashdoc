@@ -16,6 +16,7 @@ const DocumentUploader = ({
   docType,
   documentUri,
   onUpload,
+  size = 85,
   documentTypeMapping,
 }) => {
   const [uploading, setUploading] = useState(false);
@@ -94,7 +95,7 @@ const DocumentUploader = ({
       const base64Img = await convertUriToBase64(imageUri);
       const uploadedImage = await uploadService.uploadImg(base64Img);
       console.log("Uploaded Image:", uploadedImage.secure_url);
-      onUpload(docType, uploadedImage.secure_url); // Update the document URL after upload
+      onUpload(docType, uploadedImage.secure_url);
     } catch (error) {
       Alert.alert(
         "Upload Error",
@@ -119,7 +120,10 @@ const DocumentUploader = ({
 
   return (
     <TouchableOpacity
-      style={styles.documentButton}
+      style={[
+        styles.documentButton,
+        { width: size, height: size, borderRadius: size / 2 },
+      ]}
       onPress={handleDocumentUpload}
       disabled={uploading}
     >
@@ -133,15 +137,25 @@ const DocumentUploader = ({
       {localImageUri ? (
         <Image
           source={{ uri: localImageUri }}
-          style={styles.documentImage}
+          style={[
+            styles.documentImage,
+            { width: size - 5, height: size - 5, borderRadius: (size - 5) / 2 },
+          ]}
           resizeMode="cover"
         />
       ) : (
         <>
-          <View style={styles.uploadIconContainer}>
+          <View
+            style={[
+              styles.uploadIconContainer,
+              { width: size / 3, height: size / 3, borderRadius: size / 6 },
+            ]}
+          >
             <Feather name="upload" size={18} style={styles.uploadIcon} />
           </View>
-          <Text style={styles.documentButtonText}>{docType}</Text>
+          <Text style={[styles.documentButtonText, { fontSize: size / 9.8 }]}>
+            {docType}
+          </Text>
         </>
       )}
     </TouchableOpacity>
@@ -150,15 +164,12 @@ const DocumentUploader = ({
 
 const styles = StyleSheet.create({
   documentButton: {
-    width: 95,
-    height: 95,
-    borderRadius: 55,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 10,
+    padding: 8,
     position: "relative",
-    marginHorizontal: 10,
+    marginHorizontal: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -166,9 +177,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   uploadIconContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 17.5,
     backgroundColor: "#e23680",
     justifyContent: "center",
     alignItems: "center",
@@ -185,16 +193,13 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   documentImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    borderRadius: 40,
   },
   documentButtonText: {
     color: "rgba(0, 0, 0, 0.6)",
-    fontSize: 9.5,
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 5,
+    marginTop: 4,
   },
   uploadIndicator: {
     position: "absolute",

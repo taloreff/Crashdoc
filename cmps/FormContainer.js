@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Keyboard,
   Platform,
+  Image,
 } from "react-native";
 import InputField from "./InputField";
 import DocumentUploader from "./DocumentUploader";
@@ -48,18 +49,73 @@ const FormContainer = ({
 
           <View style={styles.documentContainer}>
             <View style={styles.gridContainer}>
-              {documentTypes.flat().map((docType, index) => (
-                <View style={styles.gridItem} key={index}>
-                  <DocumentUploader
-                    docType={docType}
-                    documentUri={
-                      documents && documents[documentTypeMapping[docType]]
-                    }
-                    onUpload={onUpload}
-                    documentTypeMapping={documentTypeMapping}
+              {/* First row with 3 frames */}
+              <View style={styles.gridItem}>
+                <DocumentUploader
+                  docType={documentTypes[0][0]}
+                  documentUri={
+                    documents &&
+                    documents[documentTypeMapping[documentTypes[0][0]]]
+                  }
+                  onUpload={onUpload}
+                  documentTypeMapping={documentTypeMapping}
+                />
+              </View>
+              <View style={styles.gridItem}>
+                <DocumentUploader
+                  docType={documentTypes[0][1]}
+                  documentUri={
+                    documents &&
+                    documents[documentTypeMapping[documentTypes[0][1]]]
+                  }
+                  onUpload={onUpload}
+                  documentTypeMapping={documentTypeMapping}
+                />
+              </View>
+              <View style={styles.gridItem}>
+                <DocumentUploader
+                  docType={documentTypes[0][2]} // Changed to [0][2] for third item in first row
+                  documentUri={
+                    documents &&
+                    documents[documentTypeMapping[documentTypes[0][2]]]
+                  }
+                  onUpload={onUpload}
+                  documentTypeMapping={documentTypeMapping}
+                />
+              </View>
+
+              {/* Second row with 3 frames, middle one is the logo */}
+              <View style={styles.gridItem}>
+                <DocumentUploader
+                  docType={documentTypes[1][0]}
+                  documentUri={
+                    documents &&
+                    documents[documentTypeMapping[documentTypes[1][0]]]
+                  }
+                  onUpload={onUpload}
+                  documentTypeMapping={documentTypeMapping}
+                />
+              </View>
+              <View style={styles.gridItemLogo}>
+                <View style={styles.logoContainer}>
+                  <Image
+                    source={require("../assets/logo.png")}
+                    style={styles.logoImage}
+                    resizeMode="contain"
                   />
                 </View>
-              ))}
+              </View>
+              <View style={styles.gridItem}>
+                <DocumentUploader
+                  docType={documentTypes[1][2]} // Changed to [1][2] for third item in second row
+                  documentUri={
+                    documents &&
+                    documents[documentTypeMapping[documentTypes[1][2]]]
+                  }
+                  onUpload={onUpload}
+                  documentTypeMapping={documentTypeMapping}
+                />
+              </View>
             </View>
           </View>
 
@@ -98,7 +154,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   documentContainer: {
-    marginVertical: 0,
+    marginVertical: 14,
   },
   gridContainer: {
     flexDirection: "row",
@@ -106,23 +162,43 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   gridItem: {
-    width: "30%",
-    marginVertical: 8,
+    width: "29%",
+    marginVertical: 6,
     alignItems: "center",
   },
-  submitButton: {
-    backgroundColor: "#e23680",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 44,
+  gridItemLogo: {
+    width: "29%",
+    marginVertical: 6,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+  },
+  logoContainer: {
+    width: 85,
+    height: 85,
+    borderRadius: 45,
+    backgroundColor: "#F3F3F6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    marginHorizontal: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
+  },
+  submitButton: {
+    backgroundColor: "#e23680",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
   },
   disabledButton: {
     backgroundColor: "#e23680",
@@ -130,7 +206,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "bold",
   },
 });

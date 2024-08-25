@@ -269,26 +269,23 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
 
         <View style={styles.documentContainer}>
           <View style={styles.gridContainer}>
+            {/* First row with 3 frames */}
             {[
               "Upload Damage Photo 1",
               "Upload Damage Photo 2",
               "Upload Damage Photo 3",
-              "Upload Damage Photo 4",
-              "Upload Damage Photo 5",
-            ].map((docType, index) => {
-              const photoKey = `damagePhoto${index + 1}`;
-              return (
+            ].map((docType, index) => (
+              <View style={styles.gridItem} key={index}>
                 <TouchableOpacity
                   style={styles.documentButton}
-                  key={index}
                   onPress={() => handlePhotoUpload(docType, index + 1)}
-                  disabled={uploading[photoKey]}
+                  disabled={uploading[`damagePhoto${index + 1}`]}
                 >
-                  {uploading[photoKey] ? (
+                  {uploading[`damagePhoto${index + 1}`] ? (
                     <ActivityIndicator size="small" color="#e23680" />
-                  ) : damagePhotos[photoKey] ? (
+                  ) : damagePhotos[`damagePhoto${index + 1}`] ? (
                     <Image
-                      source={{ uri: damagePhotos[photoKey] }}
+                      source={{ uri: damagePhotos[`damagePhoto${index + 1}`] }}
                       style={styles.documentImage}
                     />
                   ) : (
@@ -304,8 +301,77 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
                     </>
                   )}
                 </TouchableOpacity>
-              );
-            })}
+              </View>
+            ))}
+
+            {/* Second row with 3 frames, middle one is the logo */}
+            <View style={styles.gridItem}>
+              <TouchableOpacity
+                style={styles.documentButton}
+                onPress={() => handlePhotoUpload("Upload Damage Photo 4", 4)}
+                disabled={uploading["damagePhoto4"]}
+              >
+                {uploading["damagePhoto4"] ? (
+                  <ActivityIndicator size="small" color="#e23680" />
+                ) : damagePhotos["damagePhoto4"] ? (
+                  <Image
+                    source={{ uri: damagePhotos["damagePhoto4"] }}
+                    style={styles.documentImage}
+                  />
+                ) : (
+                  <>
+                    <View style={styles.uploadIconContainer}>
+                      <Feather
+                        name="upload"
+                        size={18}
+                        style={styles.uploadIcon}
+                      />
+                    </View>
+                    <Text style={styles.documentButtonText}>
+                      Upload Damage Photo 4
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+            <View style={styles.gridItemLogo}>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("../assets/logo.png")}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+            <View style={styles.gridItem}>
+              <TouchableOpacity
+                style={styles.documentButton}
+                onPress={() => handlePhotoUpload("Upload Damage Photo 5", 5)}
+                disabled={uploading["damagePhoto5"]}
+              >
+                {uploading["damagePhoto5"] ? (
+                  <ActivityIndicator size="small" color="#e23680" />
+                ) : damagePhotos["damagePhoto5"] ? (
+                  <Image
+                    source={{ uri: damagePhotos["damagePhoto5"] }}
+                    style={styles.documentImage}
+                  />
+                ) : (
+                  <>
+                    <View style={styles.uploadIconContainer}>
+                      <Feather
+                        name="upload"
+                        size={18}
+                        style={styles.uploadIcon}
+                      />
+                    </View>
+                    <Text style={styles.documentButtonText}>
+                      Upload Damage Photo 5
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -364,9 +430,39 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
+  gridItem: {
+    width: "29%",
+    marginVertical: 6,
+    alignItems: "center",
+  },
+  gridItemLogo: {
+    width: "29%",
+    marginVertical: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoContainer: {
+    width: 95,
+    height: 95,
+    borderRadius: 55,
+    backgroundColor: "#F3F3F6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
+  },
   documentButton: {
-    width: 100,
-    height: 100,
+    width: 95,
+    height: 95,
     borderRadius: 55,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
