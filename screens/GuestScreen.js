@@ -133,9 +133,8 @@ const GuestScreen = ({ navigation }) => {
   ];
 
   const documentTypes = [
-    ["DRIVER LICENSE", "VEHICLE LICENSE"],
-    ["INSURANCE", "REGISTRATION"],
-    ["ADDITIONAL DOCUMENTS"],
+    ["DRIVER LICENSE", "VEHICLE LICENSE", "INSURANCE"],
+    ["REGISTRATION", "CRASHDOC", "ADDITIONAL DOCUMENTS"],
   ];
 
   return (
