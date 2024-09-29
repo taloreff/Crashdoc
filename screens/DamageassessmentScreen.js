@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import Swiper from "react-native-swiper";
 import client from "../backend/api/client";
 import { uploadService } from "../services/upload.service";
 
@@ -269,62 +268,111 @@ const DamageAssessmentScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.documentContainer}>
-          <Swiper
-            style={styles.wrapper}
-            showsButtons={true}
-            loop={false}
-            height={130}
-            containerStyle={styles.swiperContainer}
-            dotStyle={styles.dotStyle}
-            activeDotStyle={styles.activeDotStyle}
-            nextButton={<Text style={styles.swiperButton}>›</Text>}
-            prevButton={<Text style={styles.swiperButton}>‹</Text>}
-            paginationStyle={styles.paginationStyle}
-            horizontal={true}
-          >
+          <View style={styles.gridContainer}>
+            {/* First row with 3 frames */}
             {[
-              ["Upload Damage Photo 1", "Upload Damage Photo 2"],
-              ["Upload Damage Photo 3", "Upload Damage Photo 4"],
-              ["Upload Damage Photo 5"],
-            ].map((docPair, pairIndex) => (
-              <View style={styles.slide} key={`pair-${pairIndex}`}>
-                {docPair.map((docType, index) => {
-                  const photoKey = `damagePhoto${pairIndex * 2 + index + 1}`;
-                  return (
-                    <TouchableOpacity
-                      style={styles.documentButton}
-                      key={docType}
-                      onPress={() =>
-                        handlePhotoUpload(docType, pairIndex * 2 + index + 1)
-                      }
-                    >
-                      {damagePhotos[photoKey] ? (
-                        <Image
-                          source={{ uri: damagePhotos[photoKey] }}
-                          style={styles.documentImage}
+              "Upload Damage Photo 1",
+              "Upload Damage Photo 2",
+              "Upload Damage Photo 3",
+            ].map((docType, index) => (
+              <View style={styles.gridItem} key={index}>
+                <TouchableOpacity
+                  style={styles.documentButton}
+                  onPress={() => handlePhotoUpload(docType, index + 1)}
+                  disabled={uploading[`damagePhoto${index + 1}`]}
+                >
+                  {uploading[`damagePhoto${index + 1}`] ? (
+                    <ActivityIndicator size="small" color="#e23680" />
+                  ) : damagePhotos[`damagePhoto${index + 1}`] ? (
+                    <Image
+                      source={{ uri: damagePhotos[`damagePhoto${index + 1}`] }}
+                      style={styles.documentImage}
+                    />
+                  ) : (
+                    <>
+                      <View style={styles.uploadIconContainer}>
+                        <Feather
+                          name="upload"
+                          size={18}
+                          style={styles.uploadIcon}
                         />
-                      ) : uploading[photoKey] ? (
-                        <ActivityIndicator size="small" color="#e23680" />
-                      ) : (
-                        <>
-                          <View style={styles.uploadIconContainer}>
-                            <Feather
-                              name="upload"
-                              size={18}
-                              style={styles.uploadIcon}
-                            />
-                          </View>
-                          <Text style={styles.documentButtonText}>
-                            {docType}
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
+                      </View>
+                      <Text style={styles.documentButtonText}>{docType}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
             ))}
-          </Swiper>
+
+            {/* Second row with 3 frames, middle one is the logo */}
+            <View style={styles.gridItem}>
+              <TouchableOpacity
+                style={styles.documentButton}
+                onPress={() => handlePhotoUpload("Upload Damage Photo 4", 4)}
+                disabled={uploading["damagePhoto4"]}
+              >
+                {uploading["damagePhoto4"] ? (
+                  <ActivityIndicator size="small" color="#e23680" />
+                ) : damagePhotos["damagePhoto4"] ? (
+                  <Image
+                    source={{ uri: damagePhotos["damagePhoto4"] }}
+                    style={styles.documentImage}
+                  />
+                ) : (
+                  <>
+                    <View style={styles.uploadIconContainer}>
+                      <Feather
+                        name="upload"
+                        size={18}
+                        style={styles.uploadIcon}
+                      />
+                    </View>
+                    <Text style={styles.documentButtonText}>
+                      Upload Damage Photo 4
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+            <View style={styles.gridItemLogo}>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("../assets/logo.png")}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+            <View style={styles.gridItem}>
+              <TouchableOpacity
+                style={styles.documentButton}
+                onPress={() => handlePhotoUpload("Upload Damage Photo 5", 5)}
+                disabled={uploading["damagePhoto5"]}
+              >
+                {uploading["damagePhoto5"] ? (
+                  <ActivityIndicator size="small" color="#e23680" />
+                ) : damagePhotos["damagePhoto5"] ? (
+                  <Image
+                    source={{ uri: damagePhotos["damagePhoto5"] }}
+                    style={styles.documentImage}
+                  />
+                ) : (
+                  <>
+                    <View style={styles.uploadIconContainer}>
+                      <Feather
+                        name="upload"
+                        size={18}
+                        style={styles.uploadIcon}
+                      />
+                    </View>
+                    <Text style={styles.documentButtonText}>
+                      Upload Damage Photo 5
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {assessmentResult && (
@@ -377,25 +425,50 @@ const styles = StyleSheet.create({
   documentContainer: {
     marginVertical: 20,
   },
-  swiperContainer: {
-    height: 180,
-    width: "100%",
-  },
-  slide: {
-    flex: 1,
+  gridContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  gridItem: {
+    width: "29%",
+    marginVertical: 6,
     alignItems: "center",
   },
-  documentButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  gridItemLogo: {
+    width: "29%",
+    marginVertical: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoContainer: {
+    width: 95,
+    height: 95,
+    borderRadius: 55,
     backgroundColor: "#F3F3F6FF",
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
-    position: "relative",
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
+  },
+  documentButton: {
+    width: 95,
+    height: 95,
+    borderRadius: 55,
+    backgroundColor: "#F3F3F6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    marginVertical: 10,
   },
   documentButtonText: {
     color: "rgba(0, 0, 0, 0.6)",
@@ -419,33 +492,9 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   documentImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  dotStyle: {
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    bottom: -10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 3,
-  },
-  activeDotStyle: {
-    backgroundColor: "#e23680",
-    bottom: -10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 3,
-  },
-  swiperButton: {
-    color: "#e23680",
-    fontSize: 40,
-    fontWeight: "bold",
-  },
-  paginationStyle: {
-    marginTop: 10,
+    width: 90,
+    height: 90,
+    borderRadius: 55,
   },
   buttonContainer: {
     marginTop: 20,
